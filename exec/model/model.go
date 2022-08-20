@@ -24,7 +24,7 @@ import (
 )
 
 // Support for other project about chaosblade
-func GetAllOsExecutors() map[string]spec.Executor {
+func GetAllMiddlewareExecutors() map[string]spec.Executor {
 	executors := make(map[string]spec.Executor, 0)
 	expModels := GetAllExpModels()
 	for _, expModel := range expModels {
