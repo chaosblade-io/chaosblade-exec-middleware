@@ -17,6 +17,7 @@
 package main
 
 import (
+	"github.com/chaosblade-io/chaosblade-exec-middleware/exec/nginx"
 	"github.com/chaosblade-io/chaosblade-exec-os/exec/model"
 	"log"
 	"os"
@@ -38,7 +39,9 @@ func main() {
 
 // getModels returns experiment models in the project
 func getModels() *spec.Models {
-	modelCommandSpecs := []spec.ExpModelCommandSpec{}
+	modelCommandSpecs := []spec.ExpModelCommandSpec{
+		nginx.NewNginxCommandSpec(),
+	}
 	specModels := make([]*spec.Models, 0)
 	for _, modeSpec := range modelCommandSpecs {
 		flagSpecs := append(modeSpec.Flags(), model.GetSSHExpFlags()...)
