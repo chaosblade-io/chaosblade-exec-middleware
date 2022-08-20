@@ -1,3 +1,19 @@
+/*
+ * Copyright 1999-2020 Alibaba Group Holding Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package parser
 
 import (
@@ -23,12 +39,13 @@ const (
 
 var canHasIndex = map[string]bool{
 	Server:   true,
-	HTTP:     false,
 	Location: true,
+	HTTP:     false,
 	Upstream: false,
 	Events:   false,
 }
 
+// Config The whole nginx.conf file.
 type Config struct {
 	Blocks     []Block
 	Statements []Statement
@@ -43,11 +60,13 @@ type IfStatement struct {
 }
 type Block struct {
 	Header       string //contains Type
-	Type         string //e.g. location, server
+	Type         string //location, server, etc.
 	Blocks       []Block
 	Statements   []Statement
 	IfStatements []IfStatement
 }
+
+// Map nginx.conf to Config struct.
 type mappingVisitor struct {
 	NginxVisitor
 	Config   *Config
@@ -71,6 +90,7 @@ func newIfStatement() *IfStatement {
 func newMappingVisitor() NginxVisitor {
 	return &mappingVisitor{Config: newConfig(), context: nil}
 }
+
 func (v *mappingVisitor) VisitConfig(ctx *ConfigContext) interface{} {
 	for _, s := range ctx.AllStatement() {
 		v.Config.Statements = append(v.Config.Statements, s.Accept(v).(Statement))
@@ -194,7 +214,7 @@ func concatChildrenString(tree []antlr.Tree, sep string) string {
 	return s[:len(s)-len(sep)]
 }
 
-// LoadConfig Parse nginx.conf
+// LoadConfig Parse nginx.conf.
 func LoadConfig(file string) (*Config, error) {
 	input, err := antlr.NewFileStream(file)
 	if err != nil {
@@ -212,6 +232,7 @@ func LoadConfig(file string) (*Config, error) {
 	return config, nil
 }
 
+// EasyDumpToFile Generate new nginx.conf.
 func (c *Config) EasyDumpToFile(fileName string) error {
 	file, err := os.OpenFile(fileName, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0666)
 	if err != nil {
@@ -224,7 +245,7 @@ func (c *Config) EasyDumpToFile(fileName string) error {
 	return nil
 }
 
-// DumpToFile Generate new nginx.conf
+// DumpToFile Generate new nginx.conf.
 func (c *Config) DumpToFile(file *os.File, space string, indent, delta int) {
 	dumpAllStatements(file, space, indent, c.Statements)
 	dumpAllBlocks(file, space, indent, delta, c.Blocks)
@@ -272,14 +293,8 @@ func writeWithIndent(file *os.File, space string, indent int, s string) {
 	}
 }
 
-type ListResult struct {
-	Id     int
-	Type   string
-	Header string
-	Block  *Block
-}
-
-// FindBlock e.g., http.server[0].location[0]
+// FindBlock through block locator expression, e.g., locator='http.server[0].location[0]'.
+// When you want to use the global block, set locator='global'.
 func (c *Config) FindBlock(locator string) (*[]Statement, error) {
 	var now *Block = nil
 	for idx, loc := range strings.Split(locator, ".") {
@@ -346,6 +361,8 @@ func findAndCheckBlockHeader(loc string) (string, int, error) {
 	return "", 0, errors.New(fmt.Sprintf("illegal block name %s", blockName))
 }
 
+// SetStatement Add Statement to Config.Statements.
+// if addNew is true, then add a new item to Config.Statements array, otherwise will replace.
 func (c *Config) SetStatement(locator string, k, v string, addNew bool) error {
 	statements, err := c.FindBlock(locator)
 	if err != nil {
