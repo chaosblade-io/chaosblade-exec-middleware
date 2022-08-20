@@ -1,3 +1,19 @@
+/*
+ * Copyright 1999-2020 Alibaba Group Holding Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package nginx
 
 import (
@@ -12,16 +28,14 @@ import (
 )
 
 //TODO 1.parser
-//TODO 2.middleware
+//TODO 2.middleware ok
 //TODO 3.主仓库 ok
 //TODO 4.单测,借助于mock channel
 //TODO 5.整理一下文档
 //TODO 6.编译出最终结果，然后测试 ok
 //TODO 7.PR
 
-//FIXME 新的定位形式
 //FIXME parser解析lua block
-//TODO 整理代码结构
 const configBackupName = "nginx.conf.chaosblade.back"
 
 type NginxCommandSpec struct {
@@ -54,11 +68,12 @@ func NewNginxCommandSpec() spec.ExpModelCommandSpec {
 	}
 }
 
+//Start nginx process.
 func startNginx(channel spec.Channel, ctx context.Context) *spec.Response {
 	return runNginxCommand(channel, ctx, "")
 }
 
-//dir, activeFile, backup
+// Find nginx config directory, return dir, activeFile, backup.
 func getNginxConfigLocation(channel spec.Channel, ctx context.Context) (string, string, string, *spec.Response) {
 	response := runNginxCommand(channel, ctx, "-t")
 	if !response.Success {
@@ -76,6 +91,7 @@ func getNginxConfigLocation(channel spec.Channel, ctx context.Context) (string, 
 	return dir, location, dir + configBackupName, nil
 }
 
+// Parse kv string like 'key=value', 'listen=999;hostname=localhost;'
 func parseMultipleKvPairs(newKV string) [][]string {
 	if newKV == "" {
 		return nil
@@ -95,6 +111,7 @@ func parseMultipleKvPairs(newKV string) [][]string {
 	return pairs
 }
 
+// Reload nginx.conf backup file and send nginx process a reload signal.
 func reloadNginxConfig(channel spec.Channel, ctx context.Context) *spec.Response {
 	_, activeFile, backup, response := getNginxConfigLocation(channel, ctx)
 	if response != nil {
@@ -114,6 +131,7 @@ func reloadNginxConfig(channel spec.Channel, ctx context.Context) *spec.Response
 	return spec.ReturnSuccess("nginx config restored")
 }
 
+// Backup and swap nginx.conf, then send nginx process a reload signal.
 func swapNginxConfig(channel spec.Channel, ctx context.Context, newFile string, model *spec.ExpModel) *spec.Response {
 	dir, activeFile, backup, response := getNginxConfigLocation(channel, ctx)
 	if response != nil {

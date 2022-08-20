@@ -1,3 +1,19 @@
+/*
+ * Copyright 1999-2020 Alibaba Group Holding Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package nginx
 
 import (
@@ -13,7 +29,7 @@ import (
 
 const (
 	NginxResponseBin           = "chaos_nginxresponse"
-	defaultContentType         = "text/plain;charset=utf-8"
+	defaultContentType         = "application/json"
 	contentTypeHeaderNameUpper = "Content-Type"
 	contentTypeHeaderNameLower = "content-type"
 	luaCode                    = `local uri = ngx.var.uri;
@@ -32,7 +48,6 @@ end
 var contentTypeMap = map[string]string{
 	"json": "application/json",
 	"txt":  "text/plain;charset=utf-8",
-	// "html": "text/html;charset=utf-8",
 }
 
 type ResponseActionSpec struct {
@@ -48,9 +63,8 @@ func NewResponseActionSpec() spec.ExpActionCommandSpec {
 					Desc: "change response body",
 				},
 				&spec.ExpFlag{
-					//为了使body有效，会自动设置content type
 					Name: "header",
-					Desc: "change response header",
+					Desc: "change response header, you can use ';' to split multiple header kv pairs, such as 'Content-Type=text/plain;Server=mock;'",
 				},
 				&spec.ExpFlag{
 					Name:    "code",
@@ -59,20 +73,20 @@ func NewResponseActionSpec() spec.ExpActionCommandSpec {
 				},
 				&spec.ExpFlag{
 					Name: "path",
-					Desc: "change response path",
+					Desc: "the URI path which you will change response on",
 				},
 				&spec.ExpFlag{
 					Name: "regex",
-					Desc: "change response path",
+					Desc: "change response path through lua regex",
 				},
 				&spec.ExpFlag{
 					Name:    "type",
-					Desc:    "new response body type",
+					Desc:    "new response body type such as json and txt, or you can set Content-Type header to achieve the same function",
 					Default: "json",
 				},
 				&spec.ExpFlag{
 					Name:    "server",
-					Desc:    "which server you want to modify response? default server id is 0",
+					Desc:    "There may be many server blocks in nginx.conf, so which server you want to modify? The default server-id is 0",
 					Default: "0",
 				},
 			},
@@ -156,8 +170,8 @@ func (ng *NginxResponseExecutor) start(ctx context.Context, activeFile string, m
 	if !response.Success {
 		errMsg := response.Err
 		if strings.Contains(errMsg, `unknown directive "rewrite_by_lua_block"`) {
-			//don't support lua, fallback
-			//e.g.,nginx: [emerg] unknown directive "content_by_lua_block" in D:\nginx-1.9.9/conf/nginx.conf:43
+			//don't support lua, fallback, output example:
+			//nginx: [emerg] unknown directive "content_by_lua_block" in D:\nginx-1.9.9/conf/nginx.conf:43
 			//nginx: configuration file D:\nginx-1.9.9/conf/nginx.conf test failed
 			newFile, response := setResponse(model, activeFile, contentType, false)
 			if response != nil {
@@ -209,14 +223,7 @@ func setResponse(model *spec.ExpModel, activeFile, contentType string, useLua bo
 	return name, nil
 }
 
-func (ng *NginxResponseExecutor) stop(ctx context.Context) *spec.Response {
-	return reloadNginxConfig(ng.channel, ctx)
-}
-
-func (ng *NginxResponseExecutor) SetChannel(channel spec.Channel) {
-	ng.channel = channel
-}
-
+// The default Content-Type is json
 func getContentType(contentTypeKey string) (string, *spec.Response) {
 	if contentTypeKey == "" {
 		return defaultContentType, nil
@@ -266,6 +273,7 @@ func findServerBlock(config *parser.Config, id string) (*parser.Block, *spec.Res
 	}
 }
 
+// Create a new Lua block or location block according to the 'useLua' parameter.
 func createNewBlock(path, regex, code, body, header, contentType string, useLua bool) (*parser.Block, *spec.Response) {
 	block := parser.NewBlock()
 	pairs := parseMultipleKvPairs(header)
@@ -313,4 +321,12 @@ func createNewBlock(path, regex, code, body, header, contentType string, useLua 
 	}
 
 	return block, nil
+}
+
+func (ng *NginxResponseExecutor) stop(ctx context.Context) *spec.Response {
+	return reloadNginxConfig(ng.channel, ctx)
+}
+
+func (ng *NginxResponseExecutor) SetChannel(channel spec.Channel) {
+	ng.channel = channel
 }

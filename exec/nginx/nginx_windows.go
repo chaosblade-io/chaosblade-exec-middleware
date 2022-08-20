@@ -1,3 +1,19 @@
+/*
+ * Copyright 1999-2020 Alibaba Group Holding Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package nginx
 
 import (
@@ -11,7 +27,7 @@ import (
 	"time"
 )
 
-// nginx.conf may have 'include mime.types;' etc.
+// Copy nginx.conf to nginx config path and test it.
 func testNginxConfig(channel spec.Channel, ctx context.Context, file, dir string) *spec.Response {
 	file, _ = filepath.Abs(file)
 	tmpFile := fmt.Sprintf("%snginx_chaosblade_temp_%v.conf", dir, time.Now().Unix())
@@ -51,13 +67,14 @@ func killNginx(channel spec.Channel, ctx context.Context) *spec.Response {
 }
 
 func runNginxCommand(channel spec.Channel, ctx context.Context, args string) *spec.Response {
-	//find nginx location: NGINX_HOME
+	//find nginx location through NGINX_HOME env variable
 	dir := os.Getenv("NGINX_HOME")
 	if dir == "" {
 		return spec.ReturnFail(spec.OsCmdExecFailed, "cannot find nginx location, check your NGINX_HOME")
 	}
 	if args == "" {
-		//start nginx daemon
+		//start the nginx daemon, channel.Run will block the goroutine until getting all standard output.
+		//On Windows, executing 'nginx.exe' command through channel.Run will block the goroutine and never end.
 		c := make(chan *spec.Response)
 		go func() {
 			c <- channel.Run(ctx, fmt.Sprintf("cd /d %s && start /b nginx", dir), "")
@@ -81,7 +98,7 @@ func restoreConfigFile(channel spec.Channel, ctx context.Context, backup, active
 func backupConfigFile(channel spec.Channel, ctx context.Context, backup string, activeFile string, newFile string, remove bool) *spec.Response {
 	cmd := ""
 	if util.IsExist(backup) {
-		//don't create backup
+		//don't create new backup
 		cmd = fmt.Sprintf("copy /Y %s %s", newFile, activeFile)
 	} else {
 		cmd = fmt.Sprintf("copy %s %s && copy /Y %s %s", activeFile, backup, newFile, activeFile)
