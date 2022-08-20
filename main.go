@@ -4,17 +4,16 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/chaosblade-io/chaosblade-spec-go/log"
 	"os"
 
+	"github.com/chaosblade-io/chaosblade-exec-middleware/exec/model"
 	"github.com/chaosblade-io/chaosblade-spec-go/channel"
+	"github.com/chaosblade-io/chaosblade-spec-go/log"
 	"github.com/chaosblade-io/chaosblade-spec-go/spec"
 	"github.com/chaosblade-io/chaosblade-spec-go/util"
-
-	"github.com/chaosblade-io/chaosblade-exec-os/exec/model"
 )
 
-var executors = model.GetAllOsExecutors()
+var executors = model.GetAllMiddlewareExecutors()
 var models = model.GetAllExpModels()
 var modelMap = make(map[string]spec.ExpModelCommandSpec)
 var modelActionFlags = make(map[string][]spec.ExpFlag)

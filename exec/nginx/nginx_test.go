@@ -105,11 +105,11 @@ func TestKVChange(t *testing.T) {
 
 	model.ActionFlags["mode"] = "cmd"
 
-	model.ActionFlags["set-config"] = "listen=9999"
-	model.ActionFlags["block"] = "http.server[0]"
+	// model.ActionFlags["set-config"] = "listen=9999"
+	// model.ActionFlags["block"] = "http.server[0]"
 
-	// model.ActionFlags["set-config"] = "proxy_pass=https://www.taobao.com"
-	// model.ActionFlags["block"] = "http.server[0].location[0]"
+	model.ActionFlags["set-config"] = "proxy_pass=https://www.taobao.com"
+	model.ActionFlags["block"] = "http.server[0].location[0]"
 
 	response := executor.Exec(suid, context.Background(), &model)
 	fmt.Println(response)
