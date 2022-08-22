@@ -50,6 +50,8 @@ type Config struct {
 	Blocks     []Block
 	Statements []Statement
 }
+
+// Statement Key = "" when using lua statement
 type Statement struct {
 	Key   string
 	Value string
@@ -69,9 +71,8 @@ type Block struct {
 // Map nginx.conf to Config struct.
 type mappingVisitor struct {
 	NginxVisitor
-	Config   *Config
-	context  interface{}
-	parentId int
+	Config  *Config
+	context interface{}
 }
 
 func newConfig() *Config {
@@ -96,7 +97,10 @@ func (v *mappingVisitor) VisitConfig(ctx *ConfigContext) interface{} {
 		v.Config.Statements = append(v.Config.Statements, s.Accept(v).(Statement))
 	}
 	for _, s := range ctx.AllBlock() {
-		v.parentId = 0
+		child := s.Accept(v).(Block)
+		v.Config.Blocks = append(v.Config.Blocks, child)
+	}
+	for _, s := range ctx.AllLuaBlock() {
 		child := s.Accept(v).(Block)
 		v.Config.Blocks = append(v.Config.Blocks, child)
 	}
@@ -120,7 +124,7 @@ func (v *mappingVisitor) VisitGenericStatement(ctx *GenericStatementContext) int
 	s := NewStatement()
 	children := ctx.GetChildren()
 	s.Key = children[0].GetPayload().(antlr.Token).GetText()
-	s.Value = concatChildrenString(children[1:], " ") // value = "" when lua statement
+	s.Value = concatChildrenString(children[1:])
 	return *s
 }
 
@@ -135,7 +139,7 @@ func (v *mappingVisitor) VisitRewriteStatement(ctx *RewriteStatementContext) int
 	s := NewStatement()
 	children := ctx.GetChildren()
 	s.Key = "rewrite"
-	s.Value = concatChildrenString(children[1:], " ")
+	s.Value = concatChildrenString(children[1:])
 	return *s
 }
 
@@ -160,6 +164,10 @@ func (v *mappingVisitor) VisitBlock(ctx *BlockContext) interface{} {
 		child := s.Accept(v).(Block)
 		block.Blocks = append(block.Blocks, child)
 	}
+	for _, s := range ctx.AllLuaBlock() {
+		child := s.Accept(v).(Block)
+		block.Blocks = append(block.Blocks, child)
+	}
 	for _, s := range ctx.AllIfStatement() {
 		block.IfStatements = append(block.IfStatements, s.Accept(v).(IfStatement))
 	}
@@ -168,11 +176,11 @@ func (v *mappingVisitor) VisitBlock(ctx *BlockContext) interface{} {
 }
 
 func (v *mappingVisitor) VisitGenericBlockHeader(ctx *GenericBlockHeaderContext) interface{} {
-	return concatChildrenString(ctx.GetChildren(), " ")
+	return concatChildrenString(ctx.GetChildren())
 }
 
 func (v *mappingVisitor) VisitLocationBlockHeader(ctx *LocationBlockHeaderContext) interface{} {
-	return concatChildrenString(ctx.GetChildren(), " ")
+	return concatChildrenString(ctx.GetChildren())
 }
 
 func (v *mappingVisitor) VisitIfStatement(ctx *IfStatementContext) interface{} {
@@ -185,7 +193,7 @@ func (v *mappingVisitor) VisitIfStatement(ctx *IfStatementContext) interface{} {
 }
 
 func (v *mappingVisitor) VisitIfBody(ctx *IfBodyContext) interface{} {
-	return concatChildrenString(ctx.GetChildren(), " ")
+	return concatChildrenString(ctx.GetChildren())
 }
 
 // VisitRegexp unused
@@ -193,12 +201,28 @@ func (v *mappingVisitor) VisitRegexp(ctx *RegexpContext) interface{} {
 	return ctx.GetText()
 }
 
-//only for Value, Token
-func concatChildrenString(tree []antlr.Tree, sep string) string {
+func (v *mappingVisitor) VisitLuaBlock(ctx *LuaBlockContext) interface{} {
+	block := NewBlock()
+	statement := NewStatement()
+	block.Type = Lua
+	block.Header = ctx.LUA_HEADER().GetText()
+	for _, lua := range ctx.AllLuaStatement() {
+		statement.Value += lua.Accept(v).(string) + "\n"
+	}
+	block.Statements = append(block.Statements, *statement)
+	return *block
+}
+
+func (v *mappingVisitor) VisitLuaStatement(ctx *LuaStatementContext) interface{} {
+	return concatChildrenString(ctx.GetChildren())
+}
+
+// only for Value, Token
+func concatChildrenString(tree []antlr.Tree) string {
 	if len(tree) == 0 {
 		return ""
 	}
-	s := ""
+	s, sep := "", " "
 	for _, c := range tree {
 		payload := c.GetPayload()
 		switch payload.(type) {

@@ -23,18 +23,13 @@ import (
 )
 
 func Test1(t *testing.T) {
-	//input, err := antlr.NewFileStream("test.conf")
-	//if err != nil {
-	//	panic(err)
-	//}
-	input := antlr.NewInputStream(`rewrite_by_lua_block {
-		local uri=ngx.var.uri;
-		if uri == "/tt"
-		then
-			ngx.say(uri);
-			ngx.exit(200);
-		end
-	}`)
+	input, err := antlr.NewFileStream("test.conf")
+	if err != nil {
+		panic(err)
+	}
+	//input := antlr.NewInputStream(`
+	//return 200,'\n';
+	//`)
 	lexer := NewNginxLexer(input)
 	stream := antlr.NewCommonTokenStream(lexer, 0)
 	p := NewNginxParser(stream)
@@ -42,17 +37,11 @@ func Test1(t *testing.T) {
 	p.BuildParseTrees = true
 	tree := p.Config()
 	fmt.Println(tree.ToStringTree(nil, p))
-	//visitor := newMappingVisitor()
-	//config := tree.Accept(visitor).(*Config)
-	//fmt.Println(config)
-	//
-	//file, err := os.OpenFile("out.conf", os.O_CREATE, 0666)
-	//if err != nil {
-	//	panic(err)
-	//}
-	//defer file.Close()
+	visitor := newMappingVisitor()
+	config := tree.Accept(visitor).(*Config)
+	fmt.Println(config)
 
-	//config.EasyDumpToFile(file)
+	config.EasyDumpToFile("out.conf")
 }
 
 func Test2(t *testing.T) {
