@@ -1,13 +1,29 @@
+/*
+ * Copyright 1999-2020 Alibaba Group Holding Ltd.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 grammar Nginx;
 
 config
   :
-  (statement | block)+
+  (statement | block | luaBlock)+
   ;
 
 statement
    :
-   ( rewriteStatement | genericStatement | regexHeaderStatement) ';'
+   NEWLINE? ( rewriteStatement | genericStatement | regexHeaderStatement) ';' NEWLINE?
    ;
 
 genericStatement
@@ -22,12 +38,36 @@ regexHeaderStatement
   REGEXP_PREFIXED Value
   ;
 
+LUA_HEADER
+    :
+    [a-z_]+ 'by_lua_block'
+    ;
+
+luaBlock
+   :
+   NEWLINE?
+   LUA_HEADER NEWLINE?
+   '{'  NEWLINE?
+   luaStatement *
+   '}'  NEWLINE?
+    ;
+
+luaStatement
+   :
+   (
+   ( (Value | 'if' | ')' | '(')+ ';'? )
+   |
+   ';'
+   ) NEWLINE?
+   ;
+
 block
   :
-  ( locationBlockHeader | genericBlockHeader )
-  '{'
-  ( statement | block | ifStatement )*
-  '}'
+  NEWLINE?
+  ( locationBlockHeader | genericBlockHeader ) NEWLINE?
+  '{' NEWLINE?
+  (( statement | block | ifStatement | luaBlock ) NEWLINE? ) *
+  '}' NEWLINE?
   ;
 
 genericBlockHeader
@@ -37,23 +77,18 @@ genericBlockHeader
 
 ifStatement
   :
-  'if'
-  ifBody
-  '{'
-    (statement)*
-  '}'
+  'if' NEWLINE?
+  ifBody NEWLINE?
+  '{' NEWLINE?
+    (statement NEWLINE?)*
+  '}' NEWLINE?
   ;
 
 ifBody
   :
-  '('
-  Value
-  (Value)?
-  (
-    Value
-    |
-    regexp
-  )?
+  '(' NEWLINE?
+  Value + NEWLINE?
+  ( Value | regexp)? NEWLINE?
   ')'
   ;
 
@@ -80,22 +115,18 @@ rewriteStatement
   ('last' | 'break' | 'redirect' | 'permanent')?
   ;
 
-//QUOTED_STRING
-//: '"' (~('"' | '\\' | '\r' | '\n') | '\\' ('"' | '\\'))* '"';
-
-
 Value: STR_EXT | QUOTED_STRING | SINGLE_QUOTED
 ;
 
 STR_EXT
   :
- ([a-zA-Z0-9_/.,\-:=~+!?$&^*[\]@|#] | NON_ASCII)+
+  ([()a-zA-Z0-9_/.,\-:=~+!?$&^*[\]@|#] | NON_ASCII)+
   ;
 
 LINE_COMMENT: (
         ('-- ' | '#') ~[\r\n]* ('\r'? '\n' | EOF)
         | '--' ('\r'? '\n' | EOF)
-    ) -> skip;
+    ) NEWLINE? -> skip;
 
 REGEXP_PREFIXED
   : (RegexpPrefix)[a-zA-Z0-9_/.,\-:=~+!?$&^*[\]@|#)(]+
@@ -103,12 +134,10 @@ REGEXP_PREFIXED
 
 QUOTED_STRING
   :
-  '"' StringCharacters? '"'
+  '"' (~["] | EscapeSequence)* '"'
   ;
 
 fragment RegexpPrefix : [~][*]?;
-
-fragment StringCharacters : (~["\\] | EscapeSequence)+;
 
 fragment NON_ASCII :  '\u0080'..'\uFFFF';
 
@@ -118,8 +147,10 @@ fragment EscapeSequence
 
 SINGLE_QUOTED
 :
-'\'' ~['\\]* '\'';
+'\'' ~[']* '\'';
 
 WS
-:
-[ \t\n\r]+ -> skip ;
+: [ \t]+ -> skip;
+
+NEWLINE
+:[\n\r]+ ;

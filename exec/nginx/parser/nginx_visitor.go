@@ -20,6 +20,12 @@ type NginxVisitor interface {
 	// Visit a parse tree produced by NginxParser#regexHeaderStatement.
 	VisitRegexHeaderStatement(ctx *RegexHeaderStatementContext) interface{}
 
+	// Visit a parse tree produced by NginxParser#luaBlock.
+	VisitLuaBlock(ctx *LuaBlockContext) interface{}
+
+	// Visit a parse tree produced by NginxParser#luaStatement.
+	VisitLuaStatement(ctx *LuaStatementContext) interface{}
+
 	// Visit a parse tree produced by NginxParser#block.
 	VisitBlock(ctx *BlockContext) interface{}
 
