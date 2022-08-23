@@ -52,11 +52,11 @@ func NewConfigActionSpec() spec.ExpActionCommandSpec {
 				},
 				&spec.ExpFlag{
 					Name: "block",
-					Desc: "target block id for config modification",
+					Desc: "The block locator for config modification, use 'global' if you want to modify the global configuration.",
 				},
 				&spec.ExpFlag{
 					Name: "set-config",
-					Desc: "set multiple key-value config paris for specified block-id",
+					Desc: "Set multiple key-value config paris for specified block",
 				},
 			},
 			ActionFlags:    []spec.ExpFlagSpec{},
@@ -65,10 +65,10 @@ func NewConfigActionSpec() spec.ExpActionCommandSpec {
 # Change config file to my.conf
 blade create nginx config --mode file --file my.conf
 
-# Change 'server'  exposed on port 8899
+# Change 'server[0]' exposed on port 8899
 blade create nginx config --mode cmd --block 'http.server[0]' --set-config='listen=8899'
 
-# Set 'location /' proxy_pass to www.baidu.com
+# Set 'http.server[0].location[0]' proxy_pass to www.baidu.com
 blade create nginx config --mode cmd --block 'http.server[0].location[0]' --set-config='proxy_pass=www.baidu.com'
 
 # Revert config change to the oldest config file
@@ -155,7 +155,7 @@ func createNewConfig(config *parser.Config, locator string, newKV string) (strin
 	}
 	pairs := parseMultipleKvPairs(newKV)
 	if pairs == nil {
-		return "", spec.ResponseFailWithFlags(spec.ParameterInvalid, "--set-config", newKV)
+		return "", spec.ResponseFailWithFlags(spec.ParameterInvalid, "--set-config", newKV, "syntax err")
 	}
 	for _, pair := range pairs {
 		err := config.SetStatement(locator, pair[0], pair[1], false)

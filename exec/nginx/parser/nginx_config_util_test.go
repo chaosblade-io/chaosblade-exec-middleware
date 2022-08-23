@@ -29,9 +29,23 @@ func TestLoadConfig(t *testing.T) {
 		isFile bool
 	}{
 		{
-			name:   "testConfigParser",
+			name:   "TestConfigParser",
 			input:  "test.conf",
 			isFile: true,
+		},
+		{
+			name: "TestLua",
+			input: `
+        rewrite_by_lua_block {
+            local uri=ngx.var.uri
+            if uri == "/tt"
+            then
+                ngx.say(uri);
+                ngx.exit(200);
+            end
+        }
+`,
+			isFile: false,
 		},
 	}
 
@@ -51,14 +65,12 @@ func TestLoadConfig(t *testing.T) {
 
 			stream := antlr.NewCommonTokenStream(lexer, 0)
 			p := NewNginxParser(stream)
-			//p.AddErrorListener(antlr.NewDiagnosticErrorListener(true))
 			p.BuildParseTrees = true
 			tree := p.Config()
-			//fmt.Println(tree.ToStringTree(nil, p))
 			visitor := newMappingVisitor()
 			config := tree.Accept(visitor).(*Config)
 			if config == nil {
-				t.Errorf("LoadConfig() err")
+				t.Errorf("LoadConfig() err for input %s", tt.input)
 			}
 		})
 	}
@@ -82,7 +94,7 @@ func TestConfig_FindBlock(t *testing.T) {
 
 	for _, tt := range tests {
 		config, _ := LoadConfig("test.conf")
-		t.Run("dd", func(t *testing.T) {
+		t.Run("TestLocator", func(t *testing.T) {
 			_, err := config.FindBlock(tt.locator)
 			if (tt.err && err == nil) || (!tt.err && err != nil) {
 				t.Errorf("test case err : %#v, %s", tt, err)

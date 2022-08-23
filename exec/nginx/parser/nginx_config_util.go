@@ -37,6 +37,7 @@ const (
 	Lua      = "lua"
 )
 
+// For block locator parser
 var canHasIndex = map[string]bool{
 	Server:   true,
 	Location: true,
@@ -78,11 +79,10 @@ type mappingVisitor struct {
 func newConfig() *Config {
 	return &Config{}
 }
-
 func NewBlock() *Block {
 	return &Block{}
 }
-func NewStatement() *Statement {
+func newStatement() *Statement {
 	return &Statement{}
 }
 func newIfStatement() *IfStatement {
@@ -121,7 +121,7 @@ func (v *mappingVisitor) VisitStatement(ctx *StatementContext) interface{} {
 }
 
 func (v *mappingVisitor) VisitGenericStatement(ctx *GenericStatementContext) interface{} {
-	s := NewStatement()
+	s := newStatement()
 	children := ctx.GetChildren()
 	s.Key = children[0].GetPayload().(antlr.Token).GetText()
 	s.Value = concatChildrenString(children[1:])
@@ -129,14 +129,14 @@ func (v *mappingVisitor) VisitGenericStatement(ctx *GenericStatementContext) int
 }
 
 func (v *mappingVisitor) VisitRegexHeaderStatement(ctx *RegexHeaderStatementContext) interface{} {
-	s := NewStatement()
+	s := newStatement()
 	s.Key = ctx.REGEXP_PREFIXED().GetText()
 	s.Value = ctx.Value().GetText()
 	return *s
 }
 
 func (v *mappingVisitor) VisitRewriteStatement(ctx *RewriteStatementContext) interface{} {
-	s := NewStatement()
+	s := newStatement()
 	children := ctx.GetChildren()
 	s.Key = "rewrite"
 	s.Value = concatChildrenString(children[1:])
@@ -203,7 +203,7 @@ func (v *mappingVisitor) VisitRegexp(ctx *RegexpContext) interface{} {
 
 func (v *mappingVisitor) VisitLuaBlock(ctx *LuaBlockContext) interface{} {
 	block := NewBlock()
-	statement := NewStatement()
+	statement := newStatement()
 	block.Type = Lua
 	block.Header = ctx.LUA_HEADER().GetText()
 	for _, lua := range ctx.AllLuaStatement() {
@@ -217,7 +217,6 @@ func (v *mappingVisitor) VisitLuaStatement(ctx *LuaStatementContext) interface{}
 	return concatChildrenString(ctx.GetChildren())
 }
 
-// only for Value, Token
 func concatChildrenString(tree []antlr.Tree) string {
 	if len(tree) == 0 {
 		return ""
@@ -247,10 +246,8 @@ func LoadConfig(file string) (*Config, error) {
 	lexer := NewNginxLexer(input)
 	stream := antlr.NewCommonTokenStream(lexer, 0)
 	p := NewNginxParser(stream)
-	//p.AddErrorListener(antlr.NewDiagnosticErrorListener(true))
 	p.BuildParseTrees = true
 	tree := p.Config()
-	//fmt.Println(tree.ToStringTree(nil, p))
 	visitor := newMappingVisitor()
 	config := tree.Accept(visitor).(*Config)
 	return config, nil
@@ -310,11 +307,7 @@ func dumpAllBlocks(file *os.File, space string, indent, delta int, blocks []Bloc
 }
 
 func writeWithIndent(file *os.File, space string, indent int, s string) {
-	_, err := file.WriteString(strings.Repeat(space, indent) + s)
-	if err != nil {
-		//TODO
-		panic(err)
-	}
+	file.WriteString(strings.Repeat(space, indent) + s)
 }
 
 // FindBlock through block locator expression, e.g., locator='http.server[0].location[0]'.
