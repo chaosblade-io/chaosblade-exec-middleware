@@ -27,15 +27,6 @@ import (
 	"strings"
 )
 
-//TODO 1.parser
-//TODO 2.middleware ok
-//TODO 3.主仓库 ok
-//TODO 4.单测,借助于mock channel
-//TODO 5.整理一下文档
-//TODO 6.编译出最终结果，然后测试 ok
-//TODO 7.PR
-
-//FIXME parser解析lua block
 const configBackupName = "nginx.conf.chaosblade.back"
 
 type NginxCommandSpec struct {
@@ -68,7 +59,7 @@ func NewNginxCommandSpec() spec.ExpModelCommandSpec {
 	}
 }
 
-//Start nginx process.
+// Start nginx process.
 func startNginx(channel spec.Channel, ctx context.Context) *spec.Response {
 	return runNginxCommand(channel, ctx, "")
 }
@@ -119,7 +110,7 @@ func reloadNginxConfig(channel spec.Channel, ctx context.Context) *spec.Response
 	}
 
 	if !util.IsExist(backup) || util.IsDir(backup) {
-		return spec.ReturnFail(spec.FileNotExist, fmt.Sprintf("backup file %s", backup))
+		return spec.ResponseFailWithFlags(spec.FileNotExist, fmt.Sprintf("backup file %s", backup))
 	}
 
 	if response := restoreConfigFile(channel, ctx, backup, activeFile); !response.Success {

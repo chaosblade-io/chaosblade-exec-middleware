@@ -60,28 +60,28 @@ func NewResponseActionSpec() spec.ExpActionCommandSpec {
 			ActionMatchers: []spec.ExpFlagSpec{
 				&spec.ExpFlag{
 					Name: "body",
-					Desc: "change response body",
+					Desc: "Change response body",
 				},
 				&spec.ExpFlag{
 					Name: "header",
-					Desc: "change response header, you can use ';' to split multiple header kv pairs, such as 'Content-Type=text/plain;Server=mock;'",
+					Desc: "Change response header, you can use ';' to split multiple header kv pairs, such as 'Content-Type=text/plain;Server=mock;'",
 				},
 				&spec.ExpFlag{
 					Name:    "code",
-					Desc:    "change response code, default 200",
+					Desc:    "Change response code, default 200",
 					Default: "200",
 				},
 				&spec.ExpFlag{
 					Name: "path",
-					Desc: "the URI path which you will change response on",
+					Desc: "The URI which you will change response on",
 				},
 				&spec.ExpFlag{
 					Name: "regex",
-					Desc: "change response path through lua regex",
+					Desc: "Change response path through lua regex",
 				},
 				&spec.ExpFlag{
 					Name:    "type",
-					Desc:    "new response body type such as json and txt, or you can set Content-Type header to achieve the same function",
+					Desc:    " The new response body type such as json and txt, or you can set Content-Type header to achieve the same function",
 					Default: "json",
 				},
 				&spec.ExpFlag{
@@ -93,16 +93,16 @@ func NewResponseActionSpec() spec.ExpActionCommandSpec {
 			ActionFlags:    []spec.ExpFlagSpec{},
 			ActionExecutor: &NginxResponseExecutor{},
 			ActionExample: `
-# Set /test returns body='ok',code=200,type=json
+# Set /test return body='ok',code=200,type=json
 blade create nginx response --path /test --body ok
 
-# Set /test returns body='',code=500,type=json
+# Set /test return body='',code=500,type=json
 blade create nginx response --path /test --code 500
 
-# Set /test returns body='',code=500,type=json
+# Set /test return body='{"a":1}',code=200,type=json
 blade create nginx response --path /test --code 200 --body '{"a":1}' --type json
 
-# Set /t.* returns body='{"a":1}',code=200,type=json,add header 'Server=mock'
+# Set /t.* return body='{"a":1}',code=200,type=json, and add header 'Server=mock' to server[0]
 blade create nginx response --regex /t.* --code 200 --body '{"a":1}' --header 'Server=mock;' --server 0
 
 # Revert config change to the oldest config file
@@ -191,12 +191,12 @@ func setResponse(model *spec.ExpModel, activeFile, contentType string, useLua bo
 	header := model.ActionFlags["header"]
 	serverId := model.ActionFlags["server"]
 	if (regex == "" && path == "") || (regex != "" && path != "") {
-		return "", spec.ReturnFail(spec.ParameterIllegal, "--path and --regex")
+		return "", spec.ResponseFailWithFlags(spec.ParameterIllegal, "--path and --regex", "", "--path and --regex can't be empty at the same time")
 	}
 
 	config, err := parser.LoadConfig(activeFile)
 	if err != nil {
-		return "", spec.ReturnFail(spec.ParameterIllegal, fmt.Sprintf("nginx.conf parsing err %s", err))
+		return "", spec.ReturnFail(spec.OsCmdExecFailed, fmt.Sprintf("nginx.conf parsing err %s", err))
 	}
 	server, response := findServerBlock(config, serverId)
 	if response != nil {
@@ -235,7 +235,7 @@ func getContentType(contentTypeKey string) (string, *spec.Response) {
 	for k := range contentTypeMap {
 		support += k + ", "
 	}
-	return "", spec.ResponseFailWithFlags(spec.ParameterInvalid, "--type", contentTypeKey, fmt.Sprintf("--type %s is not supported, only supports ( %s )", contentTypeKey, support))
+	return "", spec.ResponseFailWithFlags(spec.ParameterInvalid, "--type", contentTypeKey, fmt.Sprintf("--type=%s is not supported, only supports ( %s )", contentTypeKey, support))
 }
 
 func findServerBlock(config *parser.Config, id string) (*parser.Block, *spec.Response) {
@@ -278,10 +278,10 @@ func createNewBlock(path, regex, code, body, header, contentType string, useLua 
 	block := parser.NewBlock()
 	pairs := parseMultipleKvPairs(header)
 	if pairs == nil && header != "" {
-		return nil, spec.ResponseFailWithFlags(spec.ParameterInvalid, "--header", header)
+		return nil, spec.ResponseFailWithFlags(spec.ParameterInvalid, "--header", header, "syntax err")
 	}
 	if _, err := strconv.Atoi(code); err != nil {
-		return nil, spec.ResponseFailWithFlags(spec.ParameterInvalid, "--code", code)
+		return nil, spec.ResponseFailWithFlags(spec.ParameterInvalid, "--code", code, "invalid code")
 	}
 
 	if useLua {
@@ -308,7 +308,7 @@ func createNewBlock(path, regex, code, body, header, contentType string, useLua 
 		}
 	} else {
 		if regex != "" {
-			return nil, spec.ReturnFail(spec.OsCmdExecFailed, "Your nginx don't have lua support, so cannot change response by --regex")
+			return nil, spec.ReturnFail(spec.OsCmdExecFailed, "Your nginx don't have lua support, so you cannot change response by --regex")
 		}
 		block.Type = parser.Location
 		block.Header = fmt.Sprintf("%s = %s", block.Type, path) //highest priority
