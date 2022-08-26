@@ -64,29 +64,30 @@ func NewResponseActionSpec() spec.ExpActionCommandSpec {
 				},
 				&spec.ExpFlag{
 					Name: "header",
-					Desc: "Change response header, you can use ';' to split multiple header kv pairs, such as 'Content-Type=text/plain;Server=mock;'",
+					Desc: "Change response header, you can use ';' to split multiple header kv pairs, such as 'Content-Type=text/plain;Server=mock;'.",
 				},
 				&spec.ExpFlag{
 					Name:    "code",
-					Desc:    "Change response code, default 200",
+					Desc:    "Change response code, default 200.",
 					Default: "200",
 				},
 				&spec.ExpFlag{
 					Name: "path",
-					Desc: "The URI which you will change response on",
+					Desc: "The URI which you will change response on. Note that one of --path and --regex must be set and can't set both at the same time.",
 				},
 				&spec.ExpFlag{
 					Name: "regex",
-					Desc: "Change response path through lua regex",
+					Desc: "Change response path through lua regex. Note that one of --path and --regex must be set and can't set both at the same time.",
 				},
 				&spec.ExpFlag{
-					Name:    "type",
-					Desc:    " The new response body type such as json and txt, or you can set Content-Type header to achieve the same function",
+					Name: "type",
+					Desc: "The new response body type such as json and txt, or you can set Content-Type header to achieve the same function. " +
+						"The default type is json.",
 					Default: "json",
 				},
 				&spec.ExpFlag{
 					Name:    "server",
-					Desc:    "There may be many server blocks in nginx.conf, so which server you want to modify? The default server-id is 0",
+					Desc:    "There may be many server blocks in nginx.conf, so which server you want to modify? The default server-id is 0.",
 					Default: "0",
 				},
 			},
