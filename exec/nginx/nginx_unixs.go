@@ -23,8 +23,6 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
-	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -49,59 +47,31 @@ func testNginxConfig(channel spec.Channel, ctx context.Context, file, dir string
 }
 
 func testNginxExists(channel spec.Channel, ctx context.Context) *spec.Response {
-	_, response := getNginxPid(channel, ctx)
-	if response != nil {
+	response := channel.Run(ctx,
+		`ps aux | grep -v grep | egrep 'nginx: ' | awk '{print $2}'`, "")
+	if !response.Success {
 		return response
+	}
+	result := response.Result.(string)
+	if strings.Count(result, "\n") == 0 {
+		return spec.ReturnFail(spec.OsCmdExecFailed, "cannot find nginx process")
 	}
 	return nil
 }
 
 func killNginx(channel spec.Channel, ctx context.Context) *spec.Response {
-	commands := []string{"kill"}
-	if response, ok := channel.IsAllCommandsAvailable(ctx, commands); !ok {
-		return response
+	if resp := testNginxExists(channel, ctx); resp != nil {
+		return resp
 	}
 
-	allPid, response := getNginxPid(channel, ctx)
-	if response != nil {
-		return response
-	}
-	//kill master process first
-	sort.Ints(allPid)
-	for _, pid := range allPid {
-		response = channel.Run(ctx, fmt.Sprintf("kill -9 %d", pid), "")
-		if !response.Success {
-			return response
-		}
+	if resp := channel.Run(ctx, "killall -9 nginx", ""); !resp.Success {
+		return resp
 	}
 	return nil
 }
 
 func runNginxCommand(channel spec.Channel, ctx context.Context, args string) *spec.Response {
 	return channel.Run(ctx, "nginx", args)
-}
-
-func getNginxPid(channel spec.Channel, ctx context.Context) ([]int, *spec.Response) {
-	response := channel.Run(ctx,
-		`ps aux | grep -v grep | egrep 'nginx: ' | awk '{print $2}'`, "")
-	if !response.Success {
-		return []int{}, response
-	}
-	result := response.Result.(string)
-	count := strings.Count(result, "\n")
-	if count == 0 {
-		return []int{}, spec.ReturnFail(spec.OsCmdExecFailed, "cannot find nginx process")
-	}
-	var allPid []int
-	for _, s := range strings.Split(strings.Trim(result, "\n"), "\n") {
-		pid, err := strconv.Atoi(s)
-		if err != nil {
-			return []int{}, spec.ReturnFail(spec.OsCmdExecFailed, "cannot find nginx process")
-		}
-		allPid = append(allPid, pid)
-	}
-
-	return allPid, nil
 }
 
 func restoreConfigFile(channel spec.Channel, ctx context.Context, backup, activeFile string) *spec.Response {
