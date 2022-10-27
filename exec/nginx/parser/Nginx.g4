@@ -101,10 +101,6 @@ rewriteStatement
   ('last' | 'break' | 'redirect' | 'permanent')?
   ;
 
-//QUOTED_STRING
-//: '"' (~('"' | '\\' | '\r' | '\n') | '\\' ('"' | '\\'))* '"';
-
-
 Value: STR_EXT | QUOTED_STRING | SINGLE_QUOTED
 ;
 
@@ -147,9 +143,3 @@ WS
 
 NEWLINE
 :[\n\r]+ ;
-
-
-//NGINX_HEADER
- //   :
- //   ''
- //   ;
