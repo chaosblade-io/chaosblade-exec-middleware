@@ -133,7 +133,7 @@ func swapNginxConfig(channel spec.Channel, ctx context.Context, newFile string, 
 	}
 
 	// remove auto generated config
-	response = backupConfigFile(channel, ctx, backup, activeFile, newFile, model.ActionFlags["mode"] != fileMode)
+	response = backupConfigFile(channel, ctx, backup, activeFile, newFile, model != nil && model.ActionFlags["mode"] != fileMode)
 	if !response.Success {
 		return response
 	}
