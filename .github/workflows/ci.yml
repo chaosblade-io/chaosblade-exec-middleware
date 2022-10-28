@@ -1,0 +1,30 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: ${{ matrix.os }} - CI - Go ${{ matrix.go_version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # If you want to matrix build , you can append the following list.
+      matrix:
+        go_version:
+          - 1.15
+          - 1.16
+          - 1.17
+        os:
+          - ubuntu-latest
+    steps:
+      - name: Set Up Go ${{ matrix.go_version }}
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go_version }}
+        id: go
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v2
+      - name: Tests
+        id: test
+        run: |
+          make test
