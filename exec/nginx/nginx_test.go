@@ -68,7 +68,7 @@ func (tc *testCase) prepare(ctx context.Context) error {
 		return errors.New("nginx not exists, test case prepare failed")
 	}
 	if resp := swapNginxConfig(tc.channel, ctx, testConfig, nil); resp != nil && !resp.Success {
-		return errors.New(resp.Result.(string))
+		return errors.New(resp.Err)
 	}
 	return nil
 }
@@ -129,7 +129,9 @@ func (tc *testCase) expectAlive(ctx context.Context, isAlive bool) {
 func (tc *testCase) start(ctx context.Context, args map[string]string) {
 	model := spec.ExpModel{}
 	model.ActionFlags = args
-	tc.spec.Executor().Exec(mockUid, ctx, &model)
+	if resp := tc.spec.Executor().Exec(mockUid, ctx, &model); !resp.Success {
+		tc.t.Fatalf("cmd '%v' run failed:%s", args, resp.Err)
+	}
 }
 
 func (tc *testCase) destroy(ctx context.Context) {
