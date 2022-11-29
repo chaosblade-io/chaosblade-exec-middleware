@@ -10,7 +10,7 @@ GO_FLAGS=-ldflags="-s -w"
 UNAME := $(shell uname)
 
 ifeq ($(BLADE_VERSION), )
-	BLADE_VERSION=1.6.1
+	BLADE_VERSION=1.7.1
 endif
 
 BUILD_TARGET=target
@@ -41,10 +41,6 @@ build_yaml: build/spec.go
 
 build_middleware: main.go
 	$(GO) build $(GO_FLAGS) -o $(BUILD_TARGET_BIN)/chaos_middleware $<
-	cp extra/strace $(BUILD_TARGET_BIN)
-
-cp_strace:
-	cp extra/strace $(BUILD_TARGET_BIN)/
 
 # build chaosblade linux version by docker image
 build_linux:
