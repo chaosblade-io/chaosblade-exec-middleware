@@ -4,10 +4,11 @@ github.com/StackExchange/wmi v1.2.1 h1:VIkavFPXSjcnS+O8yTq7NI32k0R5Aj+v39y29VYDO
 github.com/StackExchange/wmi v1.2.1/go.mod h1:rcmrprowKIVzvc+NUiLncP2uuArMWLCbu9SBzvHz7e8=
 github.com/antlr/antlr4/runtime/Go/antlr v0.0.0-20220816024939-bc8df83d7b9d h1:0xIrH2lJbraclvJT3pvTf3u2oCAL60cAqiv4qRpz4EI=
 github.com/antlr/antlr4/runtime/Go/antlr v0.0.0-20220816024939-bc8df83d7b9d/go.mod h1:F7bn7fEU90QkQ3tnmaTx3LTKLEDqnwWODIYppRQ5hnY=
-github.com/chaosblade-io/chaosblade-exec-os v1.7.1-0.20221129063507-78b9c2f2a164 h1:83pVbE7XGjhvuQke991fFXcCjqPXl0ok6JqHLoMIOVU=
-github.com/chaosblade-io/chaosblade-exec-os v1.7.1-0.20221129063507-78b9c2f2a164/go.mod h1:3SQer+qoLMX6O/AH8+daTLSV2WIeWuGaZg8Pm7yPevc=
-github.com/chaosblade-io/chaosblade-spec-go v1.7.1-0.20221103094628-4b243b319ff6 h1:V2KMCEQSrcb2l/rgjWfgoccjiqUE6/teEI+9/szcb5c=
-github.com/chaosblade-io/chaosblade-spec-go v1.7.1-0.20221103094628-4b243b319ff6/go.mod h1:GMDRCEt9jw2+PdX+S2eKBg4ES6PENRc7xsLohWJWM6s=
+github.com/chaosblade-io/chaosblade-exec-os v1.7.1 h1:1v5FszYQOFm4tdxTRJuF8DM54Rd1bs90zWeyjE6Wke8=
+github.com/chaosblade-io/chaosblade-exec-os v1.7.1/go.mod h1:e8TuopYAESkl5ZgSjfnDL03KwO09tmA1H6Y8oPNZElw=
+github.com/chaosblade-io/chaosblade-spec-go v1.7.0/go.mod h1:GMDRCEt9jw2+PdX+S2eKBg4ES6PENRc7xsLohWJWM6s=
+github.com/chaosblade-io/chaosblade-spec-go v1.7.1 h1:6umonDJj6UW0WjKy9DnWQMe4kdFHdgAIzlLSlSucpFA=
+github.com/chaosblade-io/chaosblade-spec-go v1.7.1/go.mod h1:GMDRCEt9jw2+PdX+S2eKBg4ES6PENRc7xsLohWJWM6s=
 github.com/cilium/ebpf v0.4.0/go.mod h1:4tRaxcgiL706VnOzHOdBlY8IEAIdxINsQBcU4xJJXRs=
 github.com/containerd/cgroups v1.0.2-0.20210605143700-23b51209bf7b h1:mrRq0rkLJnQOfalr7EwNn1ULsMoyGvD+8kN+hxeNRms=
 github.com/containerd/cgroups v1.0.2-0.20210605143700-23b51209bf7b/go.mod h1:0SJrPIenamHDcZhEcJMNBB85rHcUsw4f25ZfBiPYRkU=
