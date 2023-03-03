@@ -18,6 +18,7 @@ package model
 
 import (
 	"github.com/chaosblade-io/chaosblade-exec-middleware/exec/nginx"
+	"github.com/chaosblade-io/chaosblade-exec-middleware/exec/redis"
 	"github.com/chaosblade-io/chaosblade-spec-go/spec"
 )
 
@@ -26,5 +27,6 @@ import (
 func GetAllExpModels() []spec.ExpModelCommandSpec {
 	return []spec.ExpModelCommandSpec{
 		nginx.NewNginxCommandSpec(),
+		redis.NewRedisCommandSpec(),
 	}
 }
