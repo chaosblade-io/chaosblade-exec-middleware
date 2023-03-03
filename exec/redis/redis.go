@@ -14,19 +14,36 @@
  * limitations under the License.
  */
 
-package model
+package redis
 
 import (
-	"github.com/chaosblade-io/chaosblade-exec-middleware/exec/nginx"
-	"github.com/chaosblade-io/chaosblade-exec-middleware/exec/redis"
 	"github.com/chaosblade-io/chaosblade-spec-go/spec"
 )
 
-// GetAllExpModels returns the experiment model specs in the project.
-// Support for other project about chaosblade
-func GetAllExpModels() []spec.ExpModelCommandSpec {
-	return []spec.ExpModelCommandSpec{
-		nginx.NewNginxCommandSpec(),
-		redis.NewRedisCommandSpec(),
+type RedisCommandSpec struct {
+	spec.BaseExpModelCommandSpec
+}
+
+func (*RedisCommandSpec) Name() string {
+	return "redis"
+}
+
+func (*RedisCommandSpec) ShortDesc() string {
+	return "Redis experiment"
+}
+
+func (*RedisCommandSpec) LongDesc() string {
+	return "Redis experiment"
+}
+
+func NewRedisCommandSpec() spec.ExpModelCommandSpec {
+	return &RedisCommandSpec{
+		spec.BaseExpModelCommandSpec{
+			ExpActions: []spec.ExpActionCommandSpec{
+				NewCacheExpireActionSpec(),
+				NewCacheLimitActionSpec(),
+			},
+			ExpFlags: []spec.ExpFlagSpec{},
+		},
 	}
 }
