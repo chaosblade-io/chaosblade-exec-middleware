@@ -73,17 +73,17 @@ func (tc *testCase) prepare(ctx context.Context) error {
 	return nil
 }
 
-func (tc *testCase) clean() {
+func (tc *testCase) clean(nginxPath string) {
 	ctx, cancel := context.WithTimeout(context.Background(), cleanTimeout)
 	defer cancel()
 	tc.destroy(ctx)
-	reloadNginxConfig(tc.channel, ctx)
+	reloadNginxConfig(tc.channel, ctx, nginxPath)
 }
 
-func (tc *testCase) expectResponse(ctx context.Context, path, respBody string, respCode, port int, respHeaders map[string]string) {
+func (tc *testCase) expectResponse(ctx context.Context, path, respBody string, respCode, port int, respHeaders map[string]string, nginxPath string) {
 	// 'nginx -s reload' is asynchronous, so an immediate http request may return the old response.
 	killNginx(tc.channel, ctx)
-	startNginx(tc.channel, ctx)
+	startNginx(tc.channel, ctx, nginxPath)
 	resp, err := tc.client.Get(fmt.Sprintf("http://localhost:%v%s", port, path))
 	if err != nil {
 		tc.t.Fatal(err.Error())
@@ -140,21 +140,22 @@ func (tc *testCase) destroy(ctx context.Context) {
 	tc.spec.Executor().Exec(mockUid, context.WithValue(ctx, "suid", mockUid), &model)
 }
 
-func (tc *testCase) test(ctx context.Context) {
-	defer tc.clean()
+func (tc *testCase) test(ctx context.Context, nginxPath string) {
+	defer tc.clean(nginxPath)
 	if err := tc.prepare(ctx); err != nil {
 		tc.t.Skipf("Skip test: %s", err.Error())
 	}
 	tc.testFunc(ctx, tc)
 }
 
-func testWithTimeout(t *testing.T, testFunc testFuncType, spec spec.ExpActionCommandSpec, mustHaveLua bool, timeout time.Duration) {
+func testWithTimeout(t *testing.T, testFunc testFuncType, spec spec.ExpActionCommandSpec, mustHaveLua bool, timeout time.Duration, nginxPath string) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	newTestCase(t, testFunc, spec, mustHaveLua).test(ctx)
+	newTestCase(t, testFunc, spec, mustHaveLua).test(ctx, nginxPath)
 }
 
 func TestNginxCrash(t *testing.T) {
+	nginxPath := "/usr/local/nginx/sbin/nginx"
 	testWithTimeout(t, func(ctx context.Context, tc *testCase) {
 		tc.expectAlive(ctx, true)
 		tc.start(ctx, map[string]string{})
@@ -162,34 +163,36 @@ func TestNginxCrash(t *testing.T) {
 		tc.destroy(ctx)
 		tc.expectAlive(ctx, true)
 		tc.start(ctx, map[string]string{})
-	}, NewCrashActionSpec(), false, time.Duration(1)*time.Second)
+	}, NewCrashActionSpec(), false, time.Duration(1)*time.Second, nginxPath)
 }
 
 func TestNginxConfigChange(t *testing.T) {
+	nginxPath := "/usr/local/nginx/sbin/nginx"
 	testWithTimeout(t, func(ctx context.Context, tc *testCase) {
-		tc.expectResponse(ctx, "/", "", 200, 80, nil)
+		tc.expectResponse(ctx, "/", "", 200, 80, nil, nginxPath)
 
 		tc.start(ctx, map[string]string{"mode": "cmd", "set-config": "listen=9999", "block": "http.server[0]"})
-		tc.expectResponse(ctx, "/", "", 200, 9999, nil)
+		tc.expectResponse(ctx, "/", "", 200, 9999, nil, nginxPath)
 
 		tc.destroy(ctx)
-		tc.expectResponse(ctx, "/", "", 200, 80, nil)
-	}, NewConfigActionSpec(), false, time.Duration(2)*time.Second)
+		tc.expectResponse(ctx, "/", "", 200, 80, nil, nginxPath)
+	}, NewConfigActionSpec(), false, time.Duration(2)*time.Second, nginxPath)
 }
 
 func TestNginxResponseChange(t *testing.T) {
+	nginxPath := "/usr/local/nginx/sbin/nginx"
 	testWithTimeout(t, func(ctx context.Context, tc *testCase) {
-		tc.expectResponse(ctx, "/test", "", 404, 80, nil)
-		tc.expectResponse(ctx, "/", "", 200, 80, nil)
+		tc.expectResponse(ctx, "/test", "", 404, 80, nil, nginxPath)
+		tc.expectResponse(ctx, "/", "", 200, 80, nil, nginxPath)
 
 		tc.start(ctx, map[string]string{"regex": "/t.*", "code": "200", "body": "ok", "header": "Server=mock;"})
-		tc.expectResponse(ctx, "/test", "ok", 200, 80, map[string]string{"Server": "mock"})
-		tc.expectResponse(ctx, "/tt", "ok", 200, 80, map[string]string{"Server": "mock"})
+		tc.expectResponse(ctx, "/test", "ok", 200, 80, map[string]string{"Server": "mock"}, nginxPath)
+		tc.expectResponse(ctx, "/tt", "ok", 200, 80, map[string]string{"Server": "mock"}, nginxPath)
 
 		tc.start(ctx, map[string]string{"path": "/path", "code": "200", "body": "path"})
-		tc.expectResponse(ctx, "/path", "path", 200, 80, nil)
+		tc.expectResponse(ctx, "/path", "path", 200, 80, nil, nginxPath)
 
 		tc.destroy(ctx)
-		tc.expectResponse(ctx, "/test", "", 404, 80, nil)
-	}, NewResponseActionSpec(), true, time.Duration(2)*time.Second)
+		tc.expectResponse(ctx, "/test", "", 404, 80, nil, nginxPath)
+	}, NewResponseActionSpec(), true, time.Duration(2)*time.Second, nginxPath)
 }

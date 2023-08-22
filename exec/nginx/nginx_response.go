@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"github.com/chaosblade-io/chaosblade-exec-middleware/exec/category"
 	"github.com/chaosblade-io/chaosblade-exec-middleware/exec/nginx/parser"
+	"github.com/chaosblade-io/chaosblade-spec-go/log"
 	"strconv"
 	"strings"
 
@@ -90,24 +91,30 @@ func NewResponseActionSpec() spec.ExpActionCommandSpec {
 					Desc:    "There may be many server blocks in nginx.conf, so which server you want to modify? The default server-id is 0.",
 					Default: "0",
 				},
+				&spec.ExpFlag{
+					Name:     "nginx-path",
+					Desc:     "The absolute path of nginx",
+					Required: true,
+				},
 			},
 			ActionFlags:    []spec.ExpFlagSpec{},
 			ActionExecutor: &NginxResponseExecutor{},
 			ActionExample: `
 # Set /test return body='ok',code=200,type=json
-blade create nginx response --path /test --body ok
+blade create nginx response --path /test --body ok  --nginx-path /usr/local/nginx/sbin/nginx
 
 # Set /test return body='',code=500,type=json
-blade create nginx response --path /test --code 500
+blade create nginx response --path /test --code 500  --nginx-path /usr/local/nginx/sbin/nginx
 
 # Set /test return body='{"a":1}',code=200,type=json
-blade create nginx response --path /test --code 200 --body '{"a":1}' --type json
+blade create nginx response --path /test --code 200 --body '{"a":1}' --type json --nginx-path /usr/local/nginx/sbin/nginx
 
 # Set /t.* return body='{"a":1}',code=200,type=json, and add header 'Server=mock' to server[0]
-blade create nginx response --regex /t.* --code 200 --body '{"a":1}' --header 'Server=mock;' --server 0
+blade create nginx response --regex /t.* --code 200 --body '{"a":1}' --header 'Server=mock;' --server 0 --nginx-path /usr/local/nginx/sbin/nginx
 
 # Revert config change to the oldest config file
-blade destroy nginx response`,
+blade destroy nginx response  --nginx-path /usr/local/nginx/sbin/nginx
+`,
 			ActionPrograms:   []string{NginxResponseBin},
 			ActionCategories: []string{category.Middleware},
 		},
@@ -146,13 +153,19 @@ func (ng *NginxResponseExecutor) Exec(suid string, ctx context.Context, model *s
 		return response
 	}
 
-	_, activeFile, _, response := getNginxConfigLocation(ng.channel, ctx)
+	nginxPath := model.ActionFlags["nginx-path"]
+	if nginxPath == "" {
+		errMsg := "the nginx-path flag is required"
+		log.Errorf(ctx, errMsg)
+		return spec.ResponseFailWithFlags(spec.ActionNotSupport, errMsg)
+	}
+	_, activeFile, _, response := getNginxConfigLocation(ng.channel, ctx, nginxPath)
 	if response != nil {
 		return response
 	}
 
 	if _, ok := spec.IsDestroy(ctx); ok {
-		return ng.stop(ctx)
+		return ng.stop(ctx, nginxPath)
 	}
 	return ng.start(ctx, activeFile, model)
 }
@@ -324,8 +337,8 @@ func createNewBlock(path, regex, code, body, header, contentType string, useLua 
 	return block, nil
 }
 
-func (ng *NginxResponseExecutor) stop(ctx context.Context) *spec.Response {
-	return reloadNginxConfig(ng.channel, ctx)
+func (ng *NginxResponseExecutor) stop(ctx context.Context, nginxPath string) *spec.Response {
+	return reloadNginxConfig(ng.channel, ctx, nginxPath)
 }
 
 func (ng *NginxResponseExecutor) SetChannel(channel spec.Channel) {

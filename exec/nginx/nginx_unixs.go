@@ -31,14 +31,14 @@ import (
 )
 
 // Copy nginx.conf to nginx config path and test it.
-func testNginxConfig(channel spec.Channel, ctx context.Context, file, dir string) *spec.Response {
+func testNginxConfig(channel spec.Channel, ctx context.Context, file, dir string, nginxPath string) *spec.Response {
 	file, _ = filepath.Abs(file)
 	tmpFile := fmt.Sprintf("%snginx_chaosblade_temp_%v.conf", dir, time.Now().Unix())
 	response := channel.Run(ctx, fmt.Sprintf("cp %s %s", file, tmpFile), "")
 	if !response.Success {
 		return response
 	}
-	response = runNginxCommand(channel, ctx, fmt.Sprintf("-t -c %s", tmpFile))
+	response = runNginxCommand(channel, ctx, nginxPath, fmt.Sprintf("-t -c %s", tmpFile))
 	_ = channel.Run(ctx, fmt.Sprintf("rm %s", tmpFile), "") //ignore response
 	if !response.Success || !strings.Contains(response.Result.(string), "successful") {
 		return response
@@ -70,8 +70,9 @@ func killNginx(channel spec.Channel, ctx context.Context) *spec.Response {
 	return nil
 }
 
-func runNginxCommand(channel spec.Channel, ctx context.Context, args string) *spec.Response {
-	return channel.Run(ctx, "nginx", args)
+func runNginxCommand(channel spec.Channel, ctx context.Context, nginxPath string, args string) *spec.Response {
+	// "/usr/local/nginx/sbin/nginx"
+	return channel.Run(ctx, nginxPath, args)
 }
 
 func restoreConfigFile(channel spec.Channel, ctx context.Context, backup, activeFile string) *spec.Response {

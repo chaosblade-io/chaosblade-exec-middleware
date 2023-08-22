@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"github.com/chaosblade-io/chaosblade-exec-middleware/exec/category"
 	"github.com/chaosblade-io/chaosblade-exec-middleware/exec/nginx/parser"
-
+	"github.com/chaosblade-io/chaosblade-spec-go/log"
 	"github.com/chaosblade-io/chaosblade-spec-go/spec"
 	"github.com/chaosblade-io/chaosblade-spec-go/util"
 	"path/filepath"
@@ -58,21 +58,26 @@ func NewConfigActionSpec() spec.ExpActionCommandSpec {
 					Name: "set-config",
 					Desc: "Set multiple key-value config paris for specified block",
 				},
+				&spec.ExpFlag{
+					Name:     "nginx-path",
+					Desc:     "The absolute path of nginx",
+					Required: true,
+				},
 			},
 			ActionFlags:    []spec.ExpFlagSpec{},
 			ActionExecutor: &NginxConfigExecutor{},
 			ActionExample: `
 # Change config file to my.conf
-blade create nginx config --mode file --file my.conf
+blade create nginx config --mode file --file my.conf --nginx-path /usr/local/nginx/sbin/nginx
 
 # Change 'server[0]' exposed on port 8899
-blade create nginx config --mode cmd --block 'http.server[0]' --set-config='listen=8899'
+blade create nginx config --mode cmd --block 'http.server[0]' --set-config='listen=8899'  --nginx-path /usr/local/nginx/sbin/nginx
 
 # Set 'http.server[0].location[0]' proxy_pass to www.baidu.com
-blade create nginx config --mode cmd --block 'http.server[0].location[0]' --set-config='proxy_pass=www.baidu.com'
+blade create nginx config --mode cmd --block 'http.server[0].location[0]' --set-config='proxy_pass=www.baidu.com'  --nginx-path /usr/local/nginx/sbin/nginx
 
 # Revert config change to the oldest config file
-blade destroy nginx config
+blade destroy nginx config --nginx-path /usr/local/nginx/sbin/nginx
 `,
 			ActionPrograms:   []string{NginxConfigBin},
 			ActionCategories: []string{category.Middleware},
@@ -111,8 +116,13 @@ func (ng *NginxConfigExecutor) Exec(suid string, ctx context.Context, model *spe
 	if response := testNginxExists(ng.channel, ctx); response != nil {
 		return response
 	}
-
-	_, activeFile, _, response := getNginxConfigLocation(ng.channel, ctx)
+	nginxPath := model.ActionFlags["nginx-path"]
+	if nginxPath == "" {
+		errMsg := "the nginx-path flag is required"
+		log.Errorf(ctx, errMsg)
+		return spec.ResponseFailWithFlags(spec.ActionNotSupport, errMsg)
+	}
+	_, activeFile, _, response := getNginxConfigLocation(ng.channel, ctx, nginxPath)
 	if response != nil {
 		return response
 	}
@@ -127,6 +137,7 @@ func (ng *NginxConfigExecutor) start(ctx context.Context, activeFile string, mod
 	var config *parser.Config
 	mode := model.ActionFlags["mode"]
 	newFile := model.ActionFlags["file"]
+
 	switch mode {
 	case fileMode:
 		if newFile == "" || !util.IsExist(newFile) || util.IsDir(newFile) {
@@ -176,7 +187,9 @@ func (ng *NginxConfigExecutor) stop(ctx context.Context, model *spec.ExpModel) *
 	if mode != "" {
 		return spec.ResponseFailWithFlags(spec.ParameterInvalid, "--mode", mode, fmt.Sprintf("--mode cannot be %s when destroying Nginx config experiment", mode))
 	}
-	return reloadNginxConfig(ng.channel, ctx)
+
+	nginxPath := model.ActionFlags["nginx-path"]
+	return reloadNginxConfig(ng.channel, ctx, nginxPath)
 }
 
 func (ng *NginxConfigExecutor) SetChannel(channel spec.Channel) {

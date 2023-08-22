@@ -60,13 +60,13 @@ func NewNginxCommandSpec() spec.ExpModelCommandSpec {
 }
 
 // Start nginx process.
-func startNginx(channel spec.Channel, ctx context.Context) *spec.Response {
-	return runNginxCommand(channel, ctx, "")
+func startNginx(channel spec.Channel, ctx context.Context, nginxPath string) *spec.Response {
+	return runNginxCommand(channel, ctx, nginxPath, "")
 }
 
 // Find nginx config directory, return dir, activeFile, backup.
-func getNginxConfigLocation(channel spec.Channel, ctx context.Context) (string, string, string, *spec.Response) {
-	response := runNginxCommand(channel, ctx, "-t")
+func getNginxConfigLocation(channel spec.Channel, ctx context.Context, nginxPath string) (string, string, string, *spec.Response) {
+	response := runNginxCommand(channel, ctx, nginxPath, "-t")
 	if !response.Success {
 		return "", "", "", response
 	}
@@ -103,8 +103,8 @@ func parseMultipleKvPairs(newKV string) [][]string {
 }
 
 // Reload nginx.conf backup file and send nginx process a reload signal.
-func reloadNginxConfig(channel spec.Channel, ctx context.Context) *spec.Response {
-	_, activeFile, backup, response := getNginxConfigLocation(channel, ctx)
+func reloadNginxConfig(channel spec.Channel, ctx context.Context, nginxPath string) *spec.Response {
+	_, activeFile, backup, response := getNginxConfigLocation(channel, ctx, nginxPath)
 	if response != nil {
 		return response
 	}
@@ -116,7 +116,7 @@ func reloadNginxConfig(channel spec.Channel, ctx context.Context) *spec.Response
 	if response := restoreConfigFile(channel, ctx, backup, activeFile); !response.Success {
 		return response
 	}
-	if response := runNginxCommand(channel, ctx, "-s reload"); !response.Success {
+	if response := runNginxCommand(channel, ctx, nginxPath, "-s reload"); !response.Success {
 		return response
 	}
 	return spec.ReturnSuccess("nginx config restored")
@@ -124,11 +124,13 @@ func reloadNginxConfig(channel spec.Channel, ctx context.Context) *spec.Response
 
 // Backup and swap nginx.conf, then send nginx process a reload signal.
 func swapNginxConfig(channel spec.Channel, ctx context.Context, newFile string, model *spec.ExpModel) *spec.Response {
-	dir, activeFile, backup, response := getNginxConfigLocation(channel, ctx)
+
+	nginxPath := model.ActionFlags["nginx-path"]
+	dir, activeFile, backup, response := getNginxConfigLocation(channel, ctx, nginxPath)
 	if response != nil {
 		return response
 	}
-	if response := testNginxConfig(channel, ctx, newFile, dir); response != nil {
+	if response := testNginxConfig(channel, ctx, newFile, dir, nginxPath); response != nil {
 		return response
 	}
 
@@ -138,7 +140,7 @@ func swapNginxConfig(channel spec.Channel, ctx context.Context, newFile string, 
 		return response
 	}
 
-	if response := runNginxCommand(channel, ctx, "-s reload"); !response.Success {
+	if response := runNginxCommand(channel, ctx, nginxPath, "-s reload"); !response.Success {
 		return response
 	}
 	return spec.ReturnSuccess("nginx config changed")

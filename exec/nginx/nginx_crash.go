@@ -19,6 +19,7 @@ package nginx
 import (
 	"context"
 	"github.com/chaosblade-io/chaosblade-exec-middleware/exec/category"
+	"github.com/chaosblade-io/chaosblade-spec-go/log"
 
 	"github.com/chaosblade-io/chaosblade-spec-go/spec"
 )
@@ -32,15 +33,21 @@ type CrashActionSpec struct {
 func NewCrashActionSpec() spec.ExpActionCommandSpec {
 	return &CrashActionSpec{
 		spec.BaseExpActionCommandSpec{
-			ActionMatchers: []spec.ExpFlagSpec{},
+			ActionMatchers: []spec.ExpFlagSpec{
+				&spec.ExpFlag{
+					Name:     "nginx-path",
+					Desc:     "The absolute path of nginx",
+					Required: true,
+				},
+			},
 			ActionFlags:    []spec.ExpFlagSpec{},
 			ActionExecutor: &NginxCrashExecutor{},
 			ActionExample: `
 # Nginx crash
-blade create nginx crash
+blade create nginx crash --nginx-path /usr/local/nginx/sbin/nginx
 
 # Nginx restart
-blade destroy nginx crash
+blade destroy nginx crash --nginx-path /usr/local/nginx/sbin/nginx
 `,
 			ActionPrograms:   []string{NginxCrashBin},
 			ActionCategories: []string{category.Middleware},
@@ -76,8 +83,14 @@ func (*NginxCrashExecutor) Name() string {
 }
 
 func (ng *NginxCrashExecutor) Exec(suid string, ctx context.Context, model *spec.ExpModel) *spec.Response {
+	nginxPath := model.ActionFlags["nginx-path"]
+	if nginxPath == "" {
+		errMsg := "the nginx-path flag is required"
+		log.Errorf(ctx, errMsg)
+		return spec.ResponseFailWithFlags(spec.ActionNotSupport, errMsg)
+	}
 	if _, ok := spec.IsDestroy(ctx); ok {
-		return ng.stop(ctx)
+		return ng.stop(ctx, nginxPath)
 	}
 	return ng.start(ctx)
 }
@@ -93,8 +106,8 @@ func (ng *NginxCrashExecutor) start(ctx context.Context) *spec.Response {
 	}
 }
 
-func (ng *NginxCrashExecutor) stop(ctx context.Context) *spec.Response {
-	return startNginx(ng.channel, ctx)
+func (ng *NginxCrashExecutor) stop(ctx context.Context, nginxPath string) *spec.Response {
+	return startNginx(ng.channel, ctx, nginxPath)
 }
 
 func (ng *NginxCrashExecutor) SetChannel(channel spec.Channel) {
