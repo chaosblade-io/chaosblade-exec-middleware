@@ -214,6 +214,8 @@ func (cbe *CacheHotKeyExecutor) start(ctx context.Context, addrStr string, passw
 			for {
 				if time.Now().Before(endTime) {
 					HotKeyFunc(ctx, cli, keyStr, valueForCache)
+				} else {
+					break
 				}
 			}
 
