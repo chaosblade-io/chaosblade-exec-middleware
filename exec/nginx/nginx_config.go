@@ -183,11 +183,6 @@ func createNewConfig(config *parser.Config, locator string, newKV string) (strin
 }
 
 func (ng *NginxConfigExecutor) stop(ctx context.Context, model *spec.ExpModel) *spec.Response {
-	mode := model.ActionFlags["mode"]
-	if mode != "" {
-		return spec.ResponseFailWithFlags(spec.ParameterInvalid, "--mode", mode, fmt.Sprintf("--mode cannot be %s when destroying Nginx config experiment", mode))
-	}
-
 	nginxPath := model.ActionFlags["nginx-path"]
 	return reloadNginxConfig(ng.channel, ctx, nginxPath)
 }
