@@ -20,7 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -89,7 +89,7 @@ func (tc *testCase) expectResponse(ctx context.Context, path, respBody string, r
 		tc.t.Fatal(err.Error())
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	bodyString := strings.TrimSpace(string(body[:]))
 	if err != nil {
 		tc.t.Fatal(err.Error())
