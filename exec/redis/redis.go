@@ -43,6 +43,7 @@ func NewRedisCommandSpec() spec.ExpModelCommandSpec {
 				NewCacheExpireActionSpec(),
 				NewCacheLimitActionSpec(),
 				NewCacheHotKeyActionSpec(),
+				NewClientsLimitActionSpec(),
 			},
 			ExpFlags: []spec.ExpFlagSpec{},
 		},
