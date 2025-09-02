@@ -1,3 +1,6 @@
+//go:build !windows
+// +build !windows
+
 /*
  * Copyright 1999-2020 Alibaba Group Holding Ltd.
  *
@@ -19,12 +22,13 @@ package nginx
 import (
 	"context"
 	"fmt"
-	"github.com/chaosblade-io/chaosblade-spec-go/spec"
-	"github.com/chaosblade-io/chaosblade-spec-go/util"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/chaosblade-io/chaosblade-spec-go/spec"
+	"github.com/chaosblade-io/chaosblade-spec-go/util"
 )
 
 const configBackupName = "nginx.conf.chaosblade.back"
