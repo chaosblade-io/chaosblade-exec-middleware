@@ -21,7 +21,7 @@ import (
 	context "context"
 	"fmt"
 	"github.com/go-redis/redis/v8"
-	"github.com/shirou/gopsutil/process"
+	"github.com/shirou/gopsutil/v3/process"
 	"regexp"
 	"strconv"
 	"sync"

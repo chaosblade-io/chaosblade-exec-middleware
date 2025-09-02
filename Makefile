@@ -1,61 +1,142 @@
-.PHONY: build clean
+.PHONY: build clean all linux_amd64 darwin_amd64 windows_amd64 linux_arm64 darwin_arm64
 
-BLADE_SRC_ROOT=$(shell pwd)
+# 获取版本号，优先使用 Git Tag，如果没有则使用默认版本
+# 只提取主要版本号，不包含提交信息
+BLADE_VERSION := $(shell git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || echo "1.7.4")
 
-GO_ENV=CGO_ENABLED=1
-GO_MODULE=GO111MODULE=on
-GO=env $(GO_ENV) $(GO_MODULE) go
-GO_FLAGS=-ldflags="-s -w"
+# 项目信息
+PROJECT_NAME := chaosblade-exec-middleware
+BINARY_NAME := chaos_middleware
+BUILD_DIR := target
+VERSION := $(BLADE_VERSION)
 
-UNAME := $(shell uname)
+# 构建环境变量
+GO := go
+GOOS ?= $(shell go env GOOS)
+GOARCH ?= $(shell go env GOARCH)
 
-ifeq ($(BLADE_VERSION), )
-	BLADE_VERSION=1.7.4
+# 获取真实的主机平台信息（不受当前环境变量影响）
+HOST_GOOS := $(shell env -u GOOS go env GOOS)
+HOST_GOARCH := $(shell env -u GOARCH go env GOARCH)
+
+# 交叉编译时禁用 CGO
+# 如果环境变量已设置则使用环境变量，否则根据目标平台判断
+ifndef CGO_ENABLED
+  ifeq ($(GOOS),$(HOST_GOOS))
+    ifeq ($(GOARCH),$(HOST_GOARCH))
+      CGO_ENABLED := 1
+    else
+      CGO_ENABLED := 0
+    endif
+  else
+    CGO_ENABLED := 0
+  endif
 endif
 
-BUILD_TARGET=target
-BUILD_TARGET_DIR_NAME=chaosblade-$(BLADE_VERSION)
-BUILD_TARGET_PKG_DIR=$(BUILD_TARGET)/chaosblade-$(BLADE_VERSION)
-BUILD_TARGET_BIN=$(BUILD_TARGET_PKG_DIR)/bin
-BUILD_TARGET_YAML=$(BUILD_TARGET_PKG_DIR)/yaml
-BUILD_IMAGE_PATH=build/image/blade
-# cache downloaded file
-BUILD_TARGET_CACHE=$(BUILD_TARGET)/cache
+# 构建标志
+BUILD_TAGS := netgo,osusergo,disablecgo
+LDFLAGS := -ldflags="-s -w -X github.com/chaosblade-io/chaosblade-exec-middleware/version.BladeVersion=$(VERSION)"
 
-MIDDLEWARE_YAML_FILE_NAME=chaosblade-middleware-spec-$(BLADE_VERSION).yaml
-MIDDLEWARE_YAML_FILE_PATH=$(BUILD_TARGET_YAML)/$(MIDDLEWARE_YAML_FILE_NAME)
-
-ifeq ($(GOOS), linux)
-	GO_FLAGS=-ldflags="-linkmode external -extldflags -static -s -w"
+# 静态链接标志（仅在启用CGO时使用）
+ifeq ($(GOOS),linux)
+	# 只有在当前平台也是 Linux 且启用 CGO 时才启用外部静态链接
+	ifeq ($(HOST_GOOS),linux)
+	  ifeq ($(GOARCH),$(HOST_GOARCH))
+	    ifeq ($(CGO_ENABLED),1)
+		LDFLAGS := -ldflags="-linkmode external -extldflags -static -s -w -X github.com/chaosblade-io/chaosblade-exec-middleware/version.BladeVersion=$(VERSION)"
+	    endif
+	  endif
+	endif
 endif
 
-# build
-build: pre_build build_yaml build_middleware
+# 构建目标目录
+BUILD_TARGET_DIR := $(BUILD_DIR)/chaosblade-$(VERSION)-$(GOOS)_$(GOARCH)
+BUILD_BIN_DIR := $(BUILD_TARGET_DIR)/bin
+BUILD_YAML_DIR := $(BUILD_TARGET_DIR)/yaml
 
+# YAML 文件
+SPEC_YAML := chaosblade-middleware-spec-$(VERSION).yaml
+SPEC_YAML_PATH := $(BUILD_YAML_DIR)/$(SPEC_YAML)
+
+# 构建所有平台
+build: pre_build build_yaml build_binary
+
+# 预构建准备
 pre_build:
-	rm -rf $(BUILD_TARGET_PKG_DIR) $(BUILD_TARGET_PKG_FILE_PATH)
-	mkdir -p $(BUILD_TARGET_BIN) $(BUILD_TARGET_YAML)
+	@echo "Building $(PROJECT_NAME) version $(VERSION) for $(GOOS)/$(GOARCH)"
+	@mkdir -p $(BUILD_BIN_DIR) $(BUILD_YAML_DIR)
 
+# 构建 YAML 规范文件（使用当前平台的 Go）
 build_yaml: build/spec.go
-	$(GO) run $< $(MIDDLEWARE_YAML_FILE_PATH)
+	@echo "Generating YAML specification..."
+	env GOOS= GOARCH= go run $< $(SPEC_YAML_PATH)
 
-build_middleware: main.go
-	$(GO) build $(GO_FLAGS) -o $(BUILD_TARGET_BIN)/chaos_middleware $<
+# 构建二进制文件
+build_binary: main.go
+	@echo "Building binary..."
+	@echo "CGO_ENABLED=$(CGO_ENABLED), GOOS=$(GOOS), GOARCH=$(GOARCH)"
+	@echo "BUILD_TAGS=$(BUILD_TAGS)"
+	@CGO_ENABLED=$(CGO_ENABLED) GOOS=$(GOOS) GOARCH=$(GOARCH) $(GO) build -tags=$(BUILD_TAGS) $(LDFLAGS) -o $(BUILD_BIN_DIR)/$(BINARY_NAME) $<
 
-# build chaosblade linux version by docker image
-build_linux:
-	docker build -f build/image/musl/Dockerfile -t chaosblade-middleware-build-musl:latest build/image/musl
-	docker run --rm \
-		-v $(shell echo -n ${GOPATH}):/go \
-		-v $(BLADE_SRC_ROOT):/chaosblade-exec-middleware \
-		-w /chaosblade-exec-middleware \
-		chaosblade-middleware-build-musl:latest
+# Linux AMD64 构建
+linux_amd64:
+	@$(MAKE) build GOOS=linux GOARCH=amd64
 
-# test
+# Linux ARM64 构建
+linux_arm64:
+	@$(MAKE) build GOOS=linux GOARCH=arm64
+
+# Darwin AMD64 构建
+darwin_amd64:
+	@$(MAKE) build GOOS=darwin GOARCH=amd64
+
+# Darwin ARM64 构建
+darwin_arm64:
+	@$(MAKE) build GOOS=darwin GOARCH=arm64
+
+# Windows AMD64 构建
+windows_amd64:
+	@$(MAKE) build GOOS=windows GOARCH=amd64
+
+# 构建所有支持的平台
+build_all: linux_amd64 linux_arm64 darwin_amd64 darwin_arm64 windows_amd64
+
+# 测试
 test:
-	go test -race -coverprofile=coverage.txt -covermode=atomic ./...
-# clean all build result
+	@echo "Running tests..."
+	@$(GO) test -race -coverprofile=coverage.txt -covermode=atomic ./...
+
+# 清理构建结果
 clean:
-	go clean ./...
-	rm -rf $(BUILD_TARGET)
-	rm -rf $(BUILD_IMAGE_PATH)/$(BUILD_TARGET_DIR_NAME)
+	@echo "Cleaning build artifacts..."
+	@$(GO) clean ./...
+	@rm -rf $(BUILD_DIR)
+	@rm -rf build/image/blade/chaosblade-$(VERSION)
+
+# 显示版本信息
+version:
+	@echo "Version: $(VERSION)"
+	@echo "Git Tag: $(shell git describe --tags --abbrev=0 2>/dev/null || echo "not available")"
+	@echo "Build OS: $(GOOS)"
+	@echo "Build Arch: $(GOARCH)"
+
+# 帮助信息
+help:
+	@echo "Available targets:"
+	@echo "  build            - Build for current platform"
+	@echo "  linux_amd64      - Build for Linux AMD64"
+	@echo "  linux_arm64      - Build for Linux ARM64"
+	@echo "  darwin_amd64     - Build for Darwin AMD64"
+	@echo "  darwin_arm64     - Build for Darwin ARM64"
+	@echo "  windows_amd64    - Build for Windows AMD64"
+	@echo "  build_all        - Build for all supported platforms"
+	@echo "  test             - Run tests"
+	@echo "  clean            - Clean build artifacts"
+	@echo "  version          - Show version information"
+	@echo "  help             - Show this help message"
+	@echo ""
+	@echo "Environment variables:"
+	@echo "  BLADE_VERSION    - Override version (default: Git tag or 1.7.4)"
+	@echo "  GOOS            - Target OS (default: current OS)"
+	@echo "  GOARCH          - Target architecture (default: current arch)"
+
