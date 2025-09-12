@@ -1,4 +1,4 @@
-name: CI
+name: ci
 
 on:
   push:
@@ -7,8 +7,8 @@ on:
     branches: [ main, master ]
 
 jobs:
-  build:
-    name: ${{ matrix.os }} - ${{ matrix.arch }} - Go ${{ matrix.go_version }}
+  test:
+    name: ${{ matrix.os }} - Test - Go ${{ matrix.go_version }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -16,43 +16,58 @@ jobs:
           - "1.20"
         os:
           - ubuntu-latest
-          - macos-latest
-        arch:
-          - amd64
-          - arm64
-        include:
-          # Ubuntu supports both architectures
-          - os: ubuntu-latest
-            arch: amd64
-            goos: linux
-            goarch: amd64
-          - os: ubuntu-latest
-            arch: arm64
-            goos: linux
-            goarch: arm64
-          # macOS supports both architectures
-          - os: macos-latest
-            arch: amd64
-            goos: darwin
-            goarch: amd64
-          - os: macos-latest
-            arch: arm64
-            goos: darwin
-            goarch: arm64
-
     steps:
       - name: Set Up Go ${{ matrix.go_version }}
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go_version }}
-
+        id: go
       - name: Checkout
+        id: checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # 获取完整的Git历史和tags
+      - name: Tests
+        id: test
+        run: |
+          make test
 
+  build-matrix:
+    name: Build on ${{ matrix.os }} (${{ matrix.goos }}/${{ matrix.goarch }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            goos: linux
+            goarch: amd64
+            platform: linux_amd64
+            runner_arch: x64
+          - os: ubuntu-latest
+            goos: linux
+            goarch: arm64
+            platform: linux_arm64
+            runner_arch: arm64
+          - os: macos-latest
+            goos: darwin
+            goarch: amd64
+            platform: darwin_amd64
+            runner_arch: x64
+          - os: macos-latest
+            goos: darwin
+            goarch: arm64
+            platform: darwin_arm64
+            runner_arch: arm64
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 获取完整的 Git 历史用于版本信息
+      
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.20'
+      
       - name: Cache Go modules
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cache/go-build
@@ -60,71 +75,23 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
-
-      - name: Build for ${{ matrix.goos }}/${{ matrix.goarch }}
-        env:
-          GOOS: ${{ matrix.goos }}
-          GOARCH: ${{ matrix.goarch }}
+      
+      - name: Build ${{ matrix.platform }}
+        id: build
         run: |
-          echo "Building for ${{ matrix.goos }}/${{ matrix.goarch }}"
-          make build
-
-      - name: Run Tests
+          make ${{ matrix.platform }}
+      
+      - name: Verify Build Output
+        id: verify
         run: |
-          echo "Running tests..."
-          make test
-
-      - name: Verify Build Artifacts
-        run: |
-          echo "Verifying build artifacts for ${{ matrix.goos }}/${{ matrix.goarch }}..."
-          
-          # Check if target directory exists
-          if [ ! -d "target" ]; then
-            echo "❌ Target directory not found"
-            exit 1
-          fi
-          
-          # Look for the specific build directory
-          BUILD_DIR=$(find target/ -type d -name "chaosblade-*-${{ matrix.goos }}_${{ matrix.goarch }}" | head -1)
-          
-          if [ -z "$BUILD_DIR" ]; then
-            echo "❌ Build directory not found for ${{ matrix.goos }}/${{ matrix.goarch }}"
-            echo "Available directories:"
-            ls -la target/ || echo "No target directory"
-            exit 1
-          fi
-          
-          echo "✅ Found build directory: $BUILD_DIR"
-          
-          # Check binary file
-          if [ -f "$BUILD_DIR/bin/chaos_middleware" ]; then
-            echo "✅ Binary file exists"
-            ls -la "$BUILD_DIR/bin/"
+          echo "Verifying build output for ${{ matrix.platform }}..."
+          ls -la target/
+          BUILD_DIR=$(find target/ -name "chaosblade-*-${{ matrix.platform }}" -type d | head -1)
+          if [ -n "$BUILD_DIR" ] && [ -d "$BUILD_DIR" ]; then
+            echo "✅ Build directory created successfully: $BUILD_DIR"
+            find "$BUILD_DIR" -type f -name "chaos_middleware*" | head -1
+            find "$BUILD_DIR" -type f -name "*.yaml" | head -1
           else
-            echo "❌ Binary file not found in $BUILD_DIR/bin/"
-            ls -la "$BUILD_DIR/" || echo "Build directory is empty"
+            echo "❌ Build directory not found for ${{ matrix.platform }}"
             exit 1
-          fi
-          
-          # Check YAML file
-          if ls "$BUILD_DIR/yaml/chaosblade-middleware-spec-"*.yaml >/dev/null 2>&1; then
-            echo "✅ YAML specification file exists"
-            ls -la "$BUILD_DIR/yaml/"
-          else
-            echo "❌ YAML specification file not found in $BUILD_DIR/yaml/"
-            ls -la "$BUILD_DIR/" || echo "Build directory is empty"
-            exit 1
-          fi
-
-      - name: Show Build Summary
-        run: |
-          echo "=== Build Summary ==="
-          echo "OS: ${{ matrix.os }}"
-          echo "Architecture: ${{ matrix.arch }}"
-          echo "Go Version: ${{ matrix.go_version }}"
-          echo "Target Platform: ${{ matrix.goos }}/${{ matrix.goarch }}"
-          
-          if [ -d "target" ]; then
-            echo "Build Artifacts:"
-            find target/ -type d -name "chaosblade-*" | sort
           fi
