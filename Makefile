@@ -1,9 +1,24 @@
 .PHONY: build clean all linux_amd64 darwin_amd64 linux_arm64 darwin_arm64
 
-# 获取版本号，优先使用 Git Tag，如果没有则使用默认版本
-# 只提取主要版本号，不包含提交信息
-BLADE_VERSION := $(shell git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || echo "1.7.4")
+# Version information management
+# Priority: use environment variable BLADE_VERSION, otherwise auto-get version from Git Tag
+ifneq ($(BLADE_VERSION),)
+    # If environment variable BLADE_VERSION is set, use it directly
+    # BLADE_VERSION is already defined in environment variables
+else
+    # If environment variable BLADE_VERSION is not set, try to get from Git Tag
+    GIT_TAG := $(shell git describe --tags --abbrev=0 2>/dev/null || echo "")
+    ifeq ($(GIT_TAG),)
+        # If no Git Tag exists, use default version
+        BLADE_VERSION := 1.7.4
+    else
+        # Extract version number from Git Tag (remove v prefix)
+        BLADE_VERSION := $(shell echo $(GIT_TAG) | sed 's/^v//')
+    endif
+endif
 
+# Export version number for use by other scripts
+export BLADE_VERSION
 # 项目信息
 PROJECT_NAME := chaosblade-exec-middleware
 BINARY_NAME := chaos_middleware
