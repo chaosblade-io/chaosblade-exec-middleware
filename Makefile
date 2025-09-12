@@ -1,4 +1,4 @@
-.PHONY: build clean all linux_amd64 darwin_amd64 windows_amd64 linux_arm64 darwin_arm64
+.PHONY: build clean all linux_amd64 darwin_amd64 linux_arm64 darwin_arm64
 
 # 获取版本号，优先使用 Git Tag，如果没有则使用默认版本
 # 只提取主要版本号，不包含提交信息
@@ -94,12 +94,8 @@ darwin_amd64:
 darwin_arm64:
 	@$(MAKE) build GOOS=darwin GOARCH=arm64
 
-# Windows AMD64 构建
-windows_amd64:
-	@$(MAKE) build GOOS=windows GOARCH=amd64
-
 # 构建所有支持的平台
-build_all: linux_amd64 linux_arm64 darwin_amd64 darwin_arm64 windows_amd64
+build_all: linux_amd64 linux_arm64 darwin_amd64 darwin_arm64
 
 # 测试
 test:
@@ -128,7 +124,6 @@ help:
 	@echo "  linux_arm64      - Build for Linux ARM64"
 	@echo "  darwin_amd64     - Build for Darwin AMD64"
 	@echo "  darwin_arm64     - Build for Darwin ARM64"
-	@echo "  windows_amd64    - Build for Windows AMD64"
 	@echo "  build_all        - Build for all supported platforms"
 	@echo "  test             - Run tests"
 	@echo "  clean            - Clean build artifacts"
