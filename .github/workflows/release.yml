@@ -10,6 +10,11 @@ on:
         description: 'Version to release (e.g., 1.7.4)'
         required: true
         type: string
+      draft:
+        description: 'Create as draft release'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build-matrix:
@@ -125,7 +130,6 @@ jobs:
     name: Create Release
     needs: build-matrix
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
     steps:
       - name: Get Version
         id: version
@@ -160,7 +164,7 @@ jobs:
             | macOS | ARM64 | [chaosblade-exec-middleware-${{ steps.version.outputs.version }}-darwin_arm64.tar.gz](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/chaosblade-exec-middleware-${{ steps.version.outputs.version }}-darwin_arm64.tar.gz) |
           files: |
             ./artifacts/*/chaosblade-exec-middleware-${{ steps.version.outputs.version }}-*.tar.gz
-          draft: false
+          draft: ${{ github.event.inputs.draft == 'true' }}
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
