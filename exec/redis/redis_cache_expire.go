@@ -18,8 +18,9 @@ package redis
 
 import (
 	"context"
-	"github.com/go-redis/redis/v8"
 	"time"
+
+	"github.com/go-redis/redis/v8"
 
 	"github.com/chaosblade-io/chaosblade-exec-os/exec/category"
 	"github.com/chaosblade-io/chaosblade-spec-go/log"
@@ -135,7 +136,7 @@ func (cee *CacheExpireExecutor) Exec(uid string, ctx context.Context, model *spe
 	_, err := cli.Ping(cli.Context()).Result()
 	if err != nil {
 		errMsg := "redis ping error: " + err.Error()
-		log.Errorf(ctx, errMsg)
+		log.Errorf(ctx, "%s", errMsg)
 		return spec.ResponseFailWithFlags(spec.ActionNotSupport, errMsg)
 	}
 
@@ -169,7 +170,7 @@ func (cee *CacheExpireExecutor) start(ctx context.Context, cli *redis.Client, ke
 	expiry, err := time.ParseDuration(expiryStr)
 	if err != nil {
 		errMsg := "parse duration error: " + err.Error()
-		log.Errorf(ctx, errMsg)
+		log.Errorf(ctx, "%s", errMsg)
 		return spec.ResponseFailWithFlags(spec.ActionNotSupport, errMsg)
 	}
 
@@ -178,7 +179,7 @@ func (cee *CacheExpireExecutor) start(ctx context.Context, cli *redis.Client, ke
 		allKeys, err := cli.Keys(cli.Context(), "*").Result()
 		if err != nil {
 			errMsg := "redis get all keys error: " + err.Error()
-			log.Errorf(ctx, errMsg)
+			log.Errorf(ctx, "%s", errMsg)
 			return spec.ResponseFailWithFlags(spec.ActionNotSupport, errMsg)
 		}
 
@@ -186,12 +187,12 @@ func (cee *CacheExpireExecutor) start(ctx context.Context, cli *redis.Client, ke
 			result, err := ExpireFunc(cli, key, expiry, optionStr).Result()
 			if err != nil {
 				errMsg := "redis expire key error: " + err.Error()
-				log.Errorf(ctx, errMsg)
+				log.Errorf(ctx, "%s", errMsg)
 				return spec.ResponseFailWithFlags(spec.ActionNotSupport, errMsg)
 			}
 			if !result {
 				errMsg := "redis expire key failed"
-				log.Errorf(ctx, errMsg)
+				log.Errorf(ctx, "%s", errMsg)
 				return spec.ResponseFailWithFlags(spec.ActionNotSupport, errMsg)
 			}
 		}
@@ -199,12 +200,12 @@ func (cee *CacheExpireExecutor) start(ctx context.Context, cli *redis.Client, ke
 		result, err := ExpireFunc(cli, keyStr, expiry, optionStr).Result()
 		if err != nil {
 			errMsg := "redis expire key error: " + err.Error()
-			log.Errorf(ctx, errMsg)
+			log.Errorf(ctx, "%s", errMsg)
 			return spec.ResponseFailWithFlags(spec.ActionNotSupport, errMsg)
 		}
 		if !result {
 			errMsg := "redis expire key failed"
-			log.Errorf(ctx, errMsg)
+			log.Errorf(ctx, "%s", errMsg)
 			return spec.ResponseFailWithFlags(spec.ActionNotSupport, errMsg)
 		}
 	}

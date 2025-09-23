@@ -8,6 +8,7 @@ package redis
 import (
 	"context"
 	"fmt"
+
 	"github.com/chaosblade-io/chaosblade-exec-os/exec/category"
 	"github.com/chaosblade-io/chaosblade-spec-go/log"
 	"github.com/chaosblade-io/chaosblade-spec-go/spec"
@@ -91,14 +92,14 @@ func (cle *ClientsLimitExecutor) Exec(uid string, ctx context.Context, model *sp
 	_, err := cli.Ping(cli.Context()).Result()
 	if err != nil {
 		errMsg := "redis ping error: " + err.Error()
-		log.Errorf(ctx, errMsg)
+		log.Errorf(ctx, "%s", errMsg)
 		return spec.ResponseFailWithFlags(spec.ActionNotSupport, errMsg)
 	}
 	if _, ok := spec.IsDestroy(ctx); ok {
 		originClientSize, err := cli.Get(cli.Context(), "origin_maxclients_"+uid).Result()
 		if err != nil {
 			errMsg := "redis get origin max clients error: " + err.Error()
-			log.Errorf(ctx, errMsg)
+			log.Errorf(ctx, "%s", errMsg)
 			return spec.ResponseFailWithFlags(spec.ActionNotSupport, errMsg)
 		}
 		return cle.stop(ctx, cli, originClientSize)
@@ -106,7 +107,7 @@ func (cle *ClientsLimitExecutor) Exec(uid string, ctx context.Context, model *sp
 	maxClients, err := cli.ConfigGet(cli.Context(), "maxclients").Result()
 	if err != nil {
 		errMsg := "redis get max clients error: " + err.Error()
-		log.Errorf(ctx, errMsg)
+		log.Errorf(ctx, "%s", errMsg)
 		return spec.ResponseFailWithFlags(spec.ActionNotSupport, errMsg)
 	}
 	originClientsCount := fmt.Sprint(maxClients[1])
@@ -121,12 +122,12 @@ func (cle *ClientsLimitExecutor) stop(ctx context.Context, cli *redis.Client, or
 	result, err := cli.ConfigSet(cli.Context(), "maxclients", originClients).Result()
 	if err != nil {
 		errMsg := "redis set max clients error: " + err.Error()
-		log.Errorf(ctx, errMsg)
+		log.Errorf(ctx, "%s", errMsg)
 		return spec.ResponseFailWithFlags(spec.ActionNotSupport, errMsg)
 	}
 	if result != STATUSOK {
 		errMsg := fmt.Sprintf("redis set max clients error: redis command status is %s", result)
-		log.Errorf(ctx, errMsg)
+		log.Errorf(ctx, "%s", errMsg)
 		return spec.ResponseFailWithFlags(spec.ActionNotSupport, errMsg)
 	}
 
@@ -137,19 +138,19 @@ func (cle *ClientsLimitExecutor) start(ctx context.Context, uid string, cli *red
 	result, err := cli.ConfigSet(cli.Context(), "maxclients", countStr).Result()
 	if err != nil {
 		errMsg := "redis set max clients error: " + err.Error()
-		log.Errorf(ctx, errMsg)
+		log.Errorf(ctx, "%s", errMsg)
 		return spec.ResponseFailWithFlags(spec.ActionNotSupport, errMsg)
 	}
 	if result != STATUSOK {
 		errMsg := fmt.Sprintf("redis set max clients error: redis command status is %s", result)
-		log.Errorf(ctx, errMsg)
+		log.Errorf(ctx, "%s", errMsg)
 		return spec.ResponseFailWithFlags(spec.ActionNotSupport, errMsg)
 	}
 	originErr := cli.Set(cli.Context(), "origin_maxclients_"+uid, originClientsCount, 0).Err()
 
 	if originErr != nil {
 		errMsg := "redis set origin max clients error: " + originErr.Error()
-		log.Errorf(ctx, errMsg)
+		log.Errorf(ctx, "%s", errMsg)
 		return spec.ResponseFailWithFlags(spec.ActionNotSupport, errMsg)
 	}
 

@@ -17,9 +17,9 @@
 package parser
 
 import (
-	"fmt"
-	"github.com/antlr/antlr4/runtime/Go/antlr"
 	"testing"
+
+	"github.com/antlr/antlr4/runtime/Go/antlr"
 )
 
 func TestLoadConfig(t *testing.T) {
@@ -55,7 +55,7 @@ func TestLoadConfig(t *testing.T) {
 			if tt.isFile {
 				input, err := antlr.NewFileStream(tt.input)
 				if err != nil {
-					t.Errorf(fmt.Sprintf("parser test err: %s", err))
+					t.Errorf("parser test err: %s", err)
 				}
 				lexer = NewNginxLexer(input)
 			} else {

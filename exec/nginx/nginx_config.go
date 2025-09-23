@@ -19,12 +19,13 @@ package nginx
 import (
 	"context"
 	"fmt"
+	"path/filepath"
+
 	"github.com/chaosblade-io/chaosblade-exec-middleware/exec/category"
 	"github.com/chaosblade-io/chaosblade-exec-middleware/exec/nginx/parser"
 	"github.com/chaosblade-io/chaosblade-spec-go/log"
 	"github.com/chaosblade-io/chaosblade-spec-go/spec"
 	"github.com/chaosblade-io/chaosblade-spec-go/util"
-	"path/filepath"
 )
 
 const (
@@ -119,7 +120,7 @@ func (ng *NginxConfigExecutor) Exec(suid string, ctx context.Context, model *spe
 	nginxPath := model.ActionFlags["nginx-path"]
 	if nginxPath == "" {
 		errMsg := "the nginx-path flag is required"
-		log.Errorf(ctx, errMsg)
+		log.Errorf(ctx, "%s", errMsg)
 		return spec.ResponseFailWithFlags(spec.ActionNotSupport, errMsg)
 	}
 	_, activeFile, _, response := getNginxConfigLocation(ng.channel, ctx, nginxPath)

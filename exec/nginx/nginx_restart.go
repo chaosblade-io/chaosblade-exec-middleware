@@ -18,6 +18,7 @@ package nginx
 
 import (
 	"context"
+
 	"github.com/chaosblade-io/chaosblade-exec-middleware/exec/category"
 	"github.com/chaosblade-io/chaosblade-spec-go/log"
 	"github.com/chaosblade-io/chaosblade-spec-go/spec"
@@ -82,7 +83,7 @@ func (ng *NginxRestartExecutor) Exec(suid string, ctx context.Context, model *sp
 	nginxPath := model.ActionFlags["nginx-path"]
 	if nginxPath == "" {
 		errMsg := "the nginx-path flag is required"
-		log.Errorf(ctx, errMsg)
+		log.Errorf(ctx, "%s", errMsg)
 		return spec.ResponseFailWithFlags(spec.ActionNotSupport, errMsg)
 	}
 	if _, ok := spec.IsDestroy(ctx); ok {
