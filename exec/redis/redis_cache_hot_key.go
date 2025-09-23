@@ -20,12 +20,13 @@ import (
 	"bytes"
 	context "context"
 	"fmt"
-	"github.com/go-redis/redis/v8"
-	"github.com/shirou/gopsutil/v3/process"
 	"regexp"
 	"strconv"
 	"sync"
 	time "time"
+
+	"github.com/go-redis/redis/v8"
+	"github.com/shirou/gopsutil/v3/process"
 
 	"github.com/chaosblade-io/chaosblade-exec-os/exec/category"
 	"github.com/chaosblade-io/chaosblade-spec-go/log"
@@ -153,7 +154,7 @@ func (cbe *CacheHotKeyExecutor) Exec(uid string, ctx context.Context, model *spe
 	_, err := cli.Ping(cli.Context()).Result()
 	if err != nil {
 		errMsg := "redis ping error: " + err.Error()
-		log.Errorf(ctx, errMsg)
+		log.Errorf(ctx, "%s", errMsg)
 		return spec.ResponseFailWithFlags(spec.ActionNotSupport, errMsg)
 	}
 
@@ -175,26 +176,26 @@ func (cbe *CacheHotKeyExecutor) start(ctx context.Context, addrStr string, passw
 	duration, err := time.ParseDuration(durationStr)
 	if err != nil {
 		errMsg := "parse duration-1 error: " + err.Error()
-		log.Errorf(ctx, errMsg)
+		log.Errorf(ctx, "%s", errMsg)
 		return spec.ResponseFailWithFlags(spec.ActionNotSupport, errMsg)
 	}
 
 	threadCount, err := strconv.ParseInt(threadCountStr, 10, 32)
 	if err != nil {
 		errMsg := "parse thread count error: " + err.Error()
-		log.Errorf(ctx, errMsg)
+		log.Errorf(ctx, "%s", errMsg)
 		return spec.ResponseFailWithFlags(spec.ActionNotSupport, errMsg)
 	}
 
 	size, err := strconv.ParseInt(sizeStr, 10, 32)
 	if err != nil {
 		errMsg := "parse size error: " + err.Error()
-		log.Errorf(ctx, errMsg)
+		log.Errorf(ctx, "%s", errMsg)
 		return spec.ResponseFailWithFlags(spec.ActionNotSupport, errMsg)
 	}
 	if size > 500*1024 {
 		errMsg := "size can not greater than 500M"
-		log.Errorf(ctx, errMsg)
+		log.Errorf(ctx, "%s", errMsg)
 		return spec.ResponseFailWithFlags(spec.ActionNotSupport, errMsg)
 	}
 

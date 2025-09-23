@@ -19,12 +19,13 @@ package redis
 import (
 	"context"
 	"fmt"
+	"math"
+	"strconv"
+
 	"github.com/chaosblade-io/chaosblade-exec-os/exec/category"
 	"github.com/chaosblade-io/chaosblade-spec-go/log"
 	"github.com/chaosblade-io/chaosblade-spec-go/spec"
 	"github.com/go-redis/redis/v8"
-	"math"
-	"strconv"
 )
 
 const CacheLimitBin = "chaos_cacheLimit"
@@ -110,7 +111,7 @@ func (cle *CacheLimitExecutor) Exec(uid string, ctx context.Context, model *spec
 	_, err := cli.Ping(cli.Context()).Result()
 	if err != nil {
 		errMsg := "redis ping error: " + err.Error()
-		log.Errorf(ctx, errMsg)
+		log.Errorf(ctx, "%s", errMsg)
 		return spec.ResponseFailWithFlags(spec.ActionNotSupport, errMsg)
 	}
 
@@ -119,7 +120,7 @@ func (cle *CacheLimitExecutor) Exec(uid string, ctx context.Context, model *spec
 		originCacheSize, err := cli.Get(cli.Context(), "origin_maxmemory_"+uid).Result()
 		if err != nil {
 			errMsg := "redis get origin max memory error: " + err.Error()
-			log.Errorf(ctx, errMsg)
+			log.Errorf(ctx, "%s", errMsg)
 			return spec.ResponseFailWithFlags(spec.ActionNotSupport, errMsg)
 		}
 		return cle.stop(ctx, cli, originCacheSize)
@@ -129,7 +130,7 @@ func (cle *CacheLimitExecutor) Exec(uid string, ctx context.Context, model *spec
 	maxmemory, err := cli.ConfigGet(cli.Context(), "maxmemory").Result()
 	if err != nil {
 		errMsg := "redis get max memory error: " + err.Error()
-		log.Errorf(ctx, errMsg)
+		log.Errorf(ctx, "%s", errMsg)
 		return spec.ResponseFailWithFlags(spec.ActionNotSupport, errMsg)
 	}
 	// get the value of maxmemory
@@ -145,12 +146,12 @@ func (cle *CacheLimitExecutor) stop(ctx context.Context, cli *redis.Client, orig
 	result, err := cli.ConfigSet(cli.Context(), "maxmemory", originCacheSize).Result()
 	if err != nil {
 		errMsg := "redis set max memory error: " + err.Error()
-		log.Errorf(ctx, errMsg)
+		log.Errorf(ctx, "%s", errMsg)
 		return spec.ResponseFailWithFlags(spec.ActionNotSupport, errMsg)
 	}
 	if result != STATUSOK {
 		errMsg := fmt.Sprintf("redis set max memory error: redis command status is %s", result)
-		log.Errorf(ctx, errMsg)
+		log.Errorf(ctx, "%s", errMsg)
 		return spec.ResponseFailWithFlags(spec.ActionNotSupport, errMsg)
 	}
 
@@ -163,13 +164,13 @@ func (cle *CacheLimitExecutor) start(ctx context.Context, uid string, cli *redis
 		percentage, err := strconv.ParseFloat(percentStr[0:len(percentStr)-1], 64)
 		if err != nil {
 			errMsg := "str parse float error: " + err.Error()
-			log.Errorf(ctx, errMsg)
+			log.Errorf(ctx, "%s", errMsg)
 			return spec.ResponseFailWithFlags(spec.ActionNotSupport, errMsg)
 		}
 		originCacheSize, err := strconv.ParseFloat(originCacheSize, 64)
 		if err != nil {
 			errMsg := "str parse float error: " + err.Error()
-			log.Errorf(ctx, errMsg)
+			log.Errorf(ctx, "%s", errMsg)
 			return spec.ResponseFailWithFlags(spec.ActionNotSupport, errMsg)
 		}
 		cacheSize = fmt.Sprint(int(math.Floor(originCacheSize / 100.0 * percentage)))
@@ -180,19 +181,19 @@ func (cle *CacheLimitExecutor) start(ctx context.Context, uid string, cli *redis
 	result, err := cli.ConfigSet(cli.Context(), "maxmemory", cacheSize).Result()
 	if err != nil {
 		errMsg := "redis set max memory error: " + err.Error()
-		log.Errorf(ctx, errMsg)
+		log.Errorf(ctx, "%s", errMsg)
 		return spec.ResponseFailWithFlags(spec.ActionNotSupport, errMsg)
 	}
 	if result != STATUSOK {
 		errMsg := fmt.Sprintf("redis set max memory error: redis command status is %s", result)
-		log.Errorf(ctx, errMsg)
+		log.Errorf(ctx, "%s", errMsg)
 		return spec.ResponseFailWithFlags(spec.ActionNotSupport, errMsg)
 	}
 
 	originErr := cli.Set(cli.Context(), "origin_maxmemory_"+uid, originCacheSize, 0).Err()
 	if originErr != nil {
 		errMsg := "redis set origin max memory error: " + originErr.Error()
-		log.Errorf(ctx, errMsg)
+		log.Errorf(ctx, "%s", errMsg)
 		return spec.ResponseFailWithFlags(spec.ActionNotSupport, errMsg)
 	}
 
