@@ -1,6 +1,6 @@
 module github.com/chaosblade-io/chaosblade-exec-middleware
 
-go 1.20
+go 1.25
 
 require (
 	github.com/antlr/antlr4/runtime/Go/antlr v0.0.0-20220816024939-bc8df83d7b9d
