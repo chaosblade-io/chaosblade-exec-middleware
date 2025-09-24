@@ -131,7 +131,20 @@ version:
 	@echo "Build OS: $(GOOS)"
 	@echo "Build Arch: $(GOARCH)"
 
+.PHONY: format
+format:
+	@echo "Running goimports and gofumpt to format Go code..."
+	@./hack/update-imports.sh
+	@./hack/update-gofmt.sh
+
+.PHONY: verify
+verify:
+	@echo "Verifying Go code formatting and import order..."
+	@./hack/verify-gofmt.sh
+	@./hack/verify-imports.sh
+
 # 帮助信息
+.PHONY: help
 help:
 	@echo "Available targets:"
 	@echo "  build            - Build for current platform"
@@ -144,6 +157,8 @@ help:
 	@echo "  clean            - Clean build artifacts"
 	@echo "  version          - Show version information"
 	@echo "  help             - Show this help message"
+	@echo "  format           - Format Go code using goimports and gofumpt"
+	@echo "  verify           - Verify Go code formatting and import order"
 	@echo ""
 	@echo "Environment variables:"
 	@echo "  BLADE_VERSION    - Override version (default: Git tag or 1.7.4)"

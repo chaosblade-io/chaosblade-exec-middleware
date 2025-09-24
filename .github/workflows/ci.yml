@@ -23,6 +23,8 @@ jobs:
       - name: Checkout
         id: checkout
         uses: actions/checkout@v4
+      - name: Run code style and import order verification
+        run: make verify
       - name: Tests
         id: test
         run: |
