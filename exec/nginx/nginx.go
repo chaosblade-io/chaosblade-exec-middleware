@@ -80,7 +80,7 @@ func getNginxConfigLocation(channel spec.Channel, ctx context.Context, nginxPath
 	}
 	regex := regexp.MustCompile("file (.*) test is successful")
 	location := regex.FindStringSubmatch(result)[1]
-	//location may be 'D:\nginx-1.9.9/conf/nginx.conf' on windows..
+	// location may be 'D:\nginx-1.9.9/conf/nginx.conf' on windows..
 	location, _ = filepath.Abs(location)
 	dir := location[:strings.LastIndex(location, string(os.PathSeparator))+1]
 	return dir, location, dir + configBackupName, nil
@@ -128,7 +128,6 @@ func reloadNginxConfig(channel spec.Channel, ctx context.Context, nginxPath stri
 
 // Backup and swap nginx.conf, then send nginx process a reload signal.
 func swapNginxConfig(channel spec.Channel, ctx context.Context, newFile string, model *spec.ExpModel) *spec.Response {
-
 	nginxPath := model.ActionFlags["nginx-path"]
 	dir, activeFile, backup, response := getNginxConfigLocation(channel, ctx, nginxPath)
 	if response != nil {

@@ -39,7 +39,7 @@ func testNginxConfig(channel spec.Channel, ctx context.Context, file, dir string
 		return response
 	}
 	response = runNginxCommand(channel, ctx, nginxPath, fmt.Sprintf("-t -c %s", tmpFile))
-	_ = channel.Run(ctx, fmt.Sprintf("rm %s", tmpFile), "") //ignore response
+	_ = channel.Run(ctx, fmt.Sprintf("rm %s", tmpFile), "") // ignore response
 	if !response.Success || !strings.Contains(response.Result.(string), "successful") {
 		return response
 	}
@@ -82,7 +82,7 @@ func restoreConfigFile(channel spec.Channel, ctx context.Context, backup, active
 func backupConfigFile(channel spec.Channel, ctx context.Context, backup string, activeFile string, newFile string, remove bool) *spec.Response {
 	cmd := ""
 	if util.IsExist(backup) {
-		//don't create new backup
+		// don't create new backup
 		cmd = fmt.Sprintf("cp -f %s %s", newFile, activeFile)
 	} else {
 		cmd = fmt.Sprintf("cp %s %s && cp -f %s %s", activeFile, backup, newFile, activeFile)

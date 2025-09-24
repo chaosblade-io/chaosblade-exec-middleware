@@ -112,8 +112,8 @@ func (cle *ClientsLimitExecutor) Exec(uid string, ctx context.Context, model *sp
 	}
 	originClientsCount := fmt.Sprint(maxClients[1])
 	return cle.start(ctx, uid, cli, originClientsCount, countStr)
-
 }
+
 func (cle *ClientsLimitExecutor) SetChannel(channel spec.Channel) {
 	cle.channel = channel
 }
@@ -155,5 +155,4 @@ func (cle *ClientsLimitExecutor) start(ctx context.Context, uid string, cli *red
 	}
 
 	return spec.ReturnSuccess(uid)
-
 }

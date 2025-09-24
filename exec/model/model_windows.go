@@ -17,8 +17,9 @@
 package model
 
 import (
-	"github.com/chaosblade-io/chaosblade-exec-middleware/exec/nginx"
 	"github.com/chaosblade-io/chaosblade-spec-go/spec"
+
+	"github.com/chaosblade-io/chaosblade-exec-middleware/exec/nginx"
 )
 
 // GetAllExpModels returns the experiment model specs in the project.

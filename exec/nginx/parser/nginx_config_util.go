@@ -19,11 +19,12 @@ package parser
 import (
 	"errors"
 	"fmt"
-	"github.com/antlr/antlr4/runtime/Go/antlr"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/antlr/antlr4/runtime/Go/antlr"
 )
 
 //go:generate java org.antlr.v4.Tool -Dlanguage=Go -visitor -no-listener Nginx.g4
@@ -58,12 +59,12 @@ type Statement struct {
 	Value string
 }
 type IfStatement struct {
-	Condition  string //contains '(' ')'
+	Condition  string // contains '(' ')'
 	Statements []Statement
 }
 type Block struct {
-	Header       string //contains Type
-	Type         string //location, server, etc.
+	Header       string // contains Type
+	Type         string // location, server, etc.
 	Blocks       []Block
 	Statements   []Statement
 	IfStatements []IfStatement
@@ -79,15 +80,19 @@ type mappingVisitor struct {
 func newConfig() *Config {
 	return &Config{}
 }
+
 func NewBlock() *Block {
 	return &Block{}
 }
+
 func newStatement() *Statement {
 	return &Statement{}
 }
+
 func newIfStatement() *IfStatement {
 	return &IfStatement{}
 }
+
 func newMappingVisitor() NginxVisitor {
 	return &mappingVisitor{Config: newConfig(), context: nil}
 }
@@ -255,7 +260,7 @@ func LoadConfig(file string) (*Config, error) {
 
 // EasyDumpToFile Generate new nginx.conf.
 func (c *Config) EasyDumpToFile(fileName string) error {
-	file, err := os.OpenFile(fileName, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0666)
+	file, err := os.OpenFile(fileName, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0o666)
 	if err != nil {
 		return err
 	}

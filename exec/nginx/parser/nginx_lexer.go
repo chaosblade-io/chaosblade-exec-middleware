@@ -11,9 +11,11 @@ import (
 )
 
 // Suppress unused import error
-var _ = fmt.Printf
-var _ = sync.Once{}
-var _ = unicode.IsLetter
+var (
+	_ = fmt.Printf
+	_ = sync.Once{}
+	_ = unicode.IsLetter
+)
 
 type NginxLexer struct {
 	*antlr.BaseLexer
