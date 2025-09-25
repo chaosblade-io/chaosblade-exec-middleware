@@ -22,11 +22,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/chaosblade-io/chaosblade-spec-go/log"
+	"github.com/chaosblade-io/chaosblade-spec-go/spec"
+
 	"github.com/chaosblade-io/chaosblade-exec-middleware/exec/category"
 	"github.com/chaosblade-io/chaosblade-exec-middleware/exec/nginx/parser"
-	"github.com/chaosblade-io/chaosblade-spec-go/log"
-
-	"github.com/chaosblade-io/chaosblade-spec-go/spec"
 )
 
 const (
@@ -185,9 +185,9 @@ func (ng *NginxResponseExecutor) start(ctx context.Context, activeFile string, m
 	if !response.Success {
 		errMsg := response.Err
 		if strings.Contains(errMsg, `unknown directive "rewrite_by_lua_block"`) {
-			//don't support lua, fallback, output example:
-			//nginx: [emerg] unknown directive "content_by_lua_block" in D:\nginx-1.9.9/conf/nginx.conf:43
-			//nginx: configuration file D:\nginx-1.9.9/conf/nginx.conf test failed
+			// don't support lua, fallback, output example:
+			// nginx: [emerg] unknown directive "content_by_lua_block" in D:\nginx-1.9.9/conf/nginx.conf:43
+			// nginx: configuration file D:\nginx-1.9.9/conf/nginx.conf test failed
 			newFile, response := setResponse(model, activeFile, contentType, false)
 			if response != nil {
 				return response
@@ -326,7 +326,7 @@ func createNewBlock(path, regex, code, body, header, contentType string, useLua 
 			return nil, spec.ReturnFail(spec.OsCmdExecFailed, "Your nginx don't have lua support, so you cannot change response by --regex")
 		}
 		block.Type = parser.Location
-		block.Header = fmt.Sprintf("%s = %s", block.Type, path) //highest priority
+		block.Header = fmt.Sprintf("%s = %s", block.Type, path) // highest priority
 		block.Statements = parser.SetStatement(block.Statements, "default_type", fmt.Sprintf("'%s'", contentType), true)
 		for _, pair := range pairs {
 			block.Statements = parser.SetStatement(block.Statements, "add_header",

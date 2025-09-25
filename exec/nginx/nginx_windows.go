@@ -75,7 +75,7 @@ func testNginxConfig(channel spec.Channel, ctx context.Context, file, dir string
 		return response
 	}
 	response = runNginxCommand(channel, ctx, fmt.Sprintf("-t -c %s", tmpFile))
-	_ = channel.Run(ctx, fmt.Sprintf("del %s", tmpFile), "") //ignore response
+	_ = channel.Run(ctx, fmt.Sprintf("del %s", tmpFile), "") // ignore response
 	if !response.Success || !strings.Contains(response.Result.(string), "successful") {
 		return response
 	}
@@ -106,14 +106,14 @@ func killNginx(channel spec.Channel, ctx context.Context) *spec.Response {
 }
 
 func runNginxCommand(channel spec.Channel, ctx context.Context, args string) *spec.Response {
-	//find nginx location through NGINX_HOME env variable
+	// find nginx location through NGINX_HOME env variable
 	dir := os.Getenv("NGINX_HOME")
 	if dir == "" {
 		return spec.ReturnFail(spec.OsCmdExecFailed, "cannot find nginx location, check your NGINX_HOME")
 	}
 	if args == "" {
-		//start the nginx daemon, channel.Run will block the goroutine until getting all standard output.
-		//On Windows, executing 'nginx.exe' command through channel.Run will block the goroutine and never end.
+		// start the nginx daemon, channel.Run will block the goroutine until getting all standard output.
+		// On Windows, executing 'nginx.exe' command through channel.Run will block the goroutine and never end.
 		c := make(chan *spec.Response)
 		go func() {
 			c <- channel.Run(ctx, fmt.Sprintf("cd /d %s && start /b nginx", dir), "")
@@ -137,7 +137,7 @@ func restoreConfigFile(channel spec.Channel, ctx context.Context, backup, active
 func backupConfigFile(channel spec.Channel, ctx context.Context, backup string, activeFile string, newFile string, remove bool) *spec.Response {
 	cmd := ""
 	if util.IsExist(backup) {
-		//don't create new backup
+		// don't create new backup
 		cmd = fmt.Sprintf("copy /Y %s %s", newFile, activeFile)
 	} else {
 		cmd = fmt.Sprintf("copy %s %s && copy /Y %s %s", activeFile, backup, newFile, activeFile)
@@ -165,7 +165,7 @@ func getNginxConfigLocation(channel spec.Channel, ctx context.Context, nginxPath
 	}
 	regex := regexp.MustCompile("file (.*) test is successful")
 	location := regex.FindStringSubmatch(result)[1]
-	//location may be 'D:\nginx-1.9.9/conf/nginx.conf' on windows..
+	// location may be 'D:\nginx-1.9.9/conf/nginx.conf' on windows..
 	location, _ = filepath.Abs(location)
 	dir := location[:strings.LastIndex(location, string(os.PathSeparator))+1]
 	return dir, location, dir + configBackupName, nil
@@ -213,7 +213,6 @@ func reloadNginxConfig(channel spec.Channel, ctx context.Context, nginxPath stri
 
 // Backup and swap nginx.conf, then send nginx process a reload signal.
 func swapNginxConfig(channel spec.Channel, ctx context.Context, newFile string, model *spec.ExpModel) *spec.Response {
-
 	nginxPath := model.ActionFlags["nginx-path"]
 	dir, activeFile, backup, response := getNginxConfigLocation(channel, ctx, nginxPath)
 	if response != nil {

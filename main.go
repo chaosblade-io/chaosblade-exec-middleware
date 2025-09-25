@@ -22,17 +22,20 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/chaosblade-io/chaosblade-exec-middleware/exec/model"
 	"github.com/chaosblade-io/chaosblade-spec-go/channel"
 	"github.com/chaosblade-io/chaosblade-spec-go/log"
 	"github.com/chaosblade-io/chaosblade-spec-go/spec"
 	"github.com/chaosblade-io/chaosblade-spec-go/util"
+
+	"github.com/chaosblade-io/chaosblade-exec-middleware/exec/model"
 )
 
-var executors = model.GetAllMiddlewareExecutors()
-var models = model.GetAllExpModels()
-var modelMap = make(map[string]spec.ExpModelCommandSpec)
-var modelActionFlags = make(map[string][]spec.ExpFlag)
+var (
+	executors        = model.GetAllMiddlewareExecutors()
+	models           = model.GetAllExpModels()
+	modelMap         = make(map[string]spec.ExpModelCommandSpec)
+	modelActionFlags = make(map[string][]spec.ExpFlag)
+)
 
 func init() {
 	for _, commandSpec := range models {

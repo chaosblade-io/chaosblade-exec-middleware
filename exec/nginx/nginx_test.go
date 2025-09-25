@@ -32,9 +32,11 @@ import (
 
 type testFuncType func(context.Context, *testCase)
 
-const testConfig = "nginx.conf"
-const cleanTimeout = time.Duration(1) * time.Second
-const mockUid = "mock"
+const (
+	testConfig   = "nginx.conf"
+	cleanTimeout = time.Duration(1) * time.Second
+	mockUid      = "mock"
+)
 
 type testCase struct {
 	spec        spec.ExpActionCommandSpec

@@ -19,10 +19,10 @@ package nginx
 import (
 	"context"
 
-	"github.com/chaosblade-io/chaosblade-exec-middleware/exec/category"
 	"github.com/chaosblade-io/chaosblade-spec-go/log"
-
 	"github.com/chaosblade-io/chaosblade-spec-go/spec"
+
+	"github.com/chaosblade-io/chaosblade-exec-middleware/exec/category"
 )
 
 const NginxCrashBin = "chaos_nginxcrash"

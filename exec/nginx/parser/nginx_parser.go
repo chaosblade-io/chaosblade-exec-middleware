@@ -11,9 +11,11 @@ import (
 )
 
 // Suppress unused import errors
-var _ = fmt.Printf
-var _ = strconv.Itoa
-var _ = sync.Once{}
+var (
+	_ = fmt.Printf
+	_ = strconv.Itoa
+	_ = sync.Once{}
+)
 
 type NginxParser struct {
 	*antlr.BaseParser
@@ -246,7 +248,7 @@ type ConfigContext struct {
 }
 
 func NewEmptyConfigContext() *ConfigContext {
-	var p = new(ConfigContext)
+	p := new(ConfigContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = NginxParserRULE_config
 	return p
@@ -255,7 +257,7 @@ func NewEmptyConfigContext() *ConfigContext {
 func (*ConfigContext) IsConfigContext() {}
 
 func NewConfigContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *ConfigContext {
-	var p = new(ConfigContext)
+	p := new(ConfigContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -486,7 +488,7 @@ type StatementContext struct {
 }
 
 func NewEmptyStatementContext() *StatementContext {
-	var p = new(StatementContext)
+	p := new(StatementContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = NginxParserRULE_statement
 	return p
@@ -495,7 +497,7 @@ func NewEmptyStatementContext() *StatementContext {
 func (*StatementContext) IsStatementContext() {}
 
 func NewStatementContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *StatementContext {
-	var p = new(StatementContext)
+	p := new(StatementContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -615,7 +617,6 @@ func (p *NginxParser) Statement() (localctx IStatementContext) {
 			p.SetState(33)
 			p.Match(NginxParserNEWLINE)
 		}
-
 	}
 	p.SetState(39)
 	p.GetErrorHandler().Sync(p)
@@ -654,7 +655,6 @@ func (p *NginxParser) Statement() (localctx IStatementContext) {
 			p.SetState(42)
 			p.Match(NginxParserNEWLINE)
 		}
-
 	}
 
 	return localctx
@@ -677,7 +677,7 @@ type GenericStatementContext struct {
 }
 
 func NewEmptyGenericStatementContext() *GenericStatementContext {
-	var p = new(GenericStatementContext)
+	p := new(GenericStatementContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = NginxParserRULE_genericStatement
 	return p
@@ -686,7 +686,7 @@ func NewEmptyGenericStatementContext() *GenericStatementContext {
 func (*GenericStatementContext) IsGenericStatementContext() {}
 
 func NewGenericStatementContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *GenericStatementContext {
-	var p = new(GenericStatementContext)
+	p := new(GenericStatementContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -811,7 +811,6 @@ func (p *NginxParser) GenericStatement() (localctx IGenericStatementContext) {
 			p.SetState(46)
 			p.Match(NginxParserNEWLINE)
 		}
-
 	}
 	p.SetState(58)
 	p.GetErrorHandler().Sync(p)
@@ -843,7 +842,6 @@ func (p *NginxParser) GenericStatement() (localctx IGenericStatementContext) {
 				p.SetState(53)
 				p.Match(NginxParserNEWLINE)
 			}
-
 		}
 
 		p.SetState(60)
@@ -871,7 +869,7 @@ type RegexHeaderStatementContext struct {
 }
 
 func NewEmptyRegexHeaderStatementContext() *RegexHeaderStatementContext {
-	var p = new(RegexHeaderStatementContext)
+	p := new(RegexHeaderStatementContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = NginxParserRULE_regexHeaderStatement
 	return p
@@ -880,7 +878,7 @@ func NewEmptyRegexHeaderStatementContext() *RegexHeaderStatementContext {
 func (*RegexHeaderStatementContext) IsRegexHeaderStatementContext() {}
 
 func NewRegexHeaderStatementContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *RegexHeaderStatementContext {
-	var p = new(RegexHeaderStatementContext)
+	p := new(RegexHeaderStatementContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -971,7 +969,7 @@ type LuaBlockContext struct {
 }
 
 func NewEmptyLuaBlockContext() *LuaBlockContext {
-	var p = new(LuaBlockContext)
+	p := new(LuaBlockContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = NginxParserRULE_luaBlock
 	return p
@@ -980,7 +978,7 @@ func NewEmptyLuaBlockContext() *LuaBlockContext {
 func (*LuaBlockContext) IsLuaBlockContext() {}
 
 func NewLuaBlockContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *LuaBlockContext {
-	var p = new(LuaBlockContext)
+	p := new(LuaBlockContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -1097,7 +1095,6 @@ func (p *NginxParser) LuaBlock() (localctx ILuaBlockContext) {
 			p.SetState(64)
 			p.Match(NginxParserNEWLINE)
 		}
-
 	}
 	{
 		p.SetState(67)
@@ -1112,7 +1109,6 @@ func (p *NginxParser) LuaBlock() (localctx ILuaBlockContext) {
 			p.SetState(68)
 			p.Match(NginxParserNEWLINE)
 		}
-
 	}
 	{
 		p.SetState(71)
@@ -1127,7 +1123,6 @@ func (p *NginxParser) LuaBlock() (localctx ILuaBlockContext) {
 			p.SetState(72)
 			p.Match(NginxParserNEWLINE)
 		}
-
 	}
 	p.SetState(78)
 	p.GetErrorHandler().Sync(p)
@@ -1155,7 +1150,6 @@ func (p *NginxParser) LuaBlock() (localctx ILuaBlockContext) {
 			p.SetState(82)
 			p.Match(NginxParserNEWLINE)
 		}
-
 	}
 
 	return localctx
@@ -1178,7 +1172,7 @@ type LuaStatementContext struct {
 }
 
 func NewEmptyLuaStatementContext() *LuaStatementContext {
-	var p = new(LuaStatementContext)
+	p := new(LuaStatementContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = NginxParserRULE_luaStatement
 	return p
@@ -1187,7 +1181,7 @@ func NewEmptyLuaStatementContext() *LuaStatementContext {
 func (*LuaStatementContext) IsLuaStatementContext() {}
 
 func NewLuaStatementContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *LuaStatementContext {
-	var p = new(LuaStatementContext)
+	p := new(LuaStatementContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -1295,7 +1289,6 @@ func (p *NginxParser) LuaStatement() (localctx ILuaStatementContext) {
 				p.SetState(90)
 				p.Match(NginxParserT__0)
 			}
-
 		}
 
 	case NginxParserT__0:
@@ -1316,7 +1309,6 @@ func (p *NginxParser) LuaStatement() (localctx ILuaStatementContext) {
 			p.SetState(96)
 			p.Match(NginxParserNEWLINE)
 		}
-
 	}
 
 	return localctx
@@ -1339,7 +1331,7 @@ type BlockContext struct {
 }
 
 func NewEmptyBlockContext() *BlockContext {
-	var p = new(BlockContext)
+	p := new(BlockContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = NginxParserRULE_block
 	return p
@@ -1348,7 +1340,7 @@ func NewEmptyBlockContext() *BlockContext {
 func (*BlockContext) IsBlockContext() {}
 
 func NewBlockContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *BlockContext {
-	var p = new(BlockContext)
+	p := new(BlockContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -1616,7 +1608,6 @@ func (p *NginxParser) Block() (localctx IBlockContext) {
 			p.SetState(99)
 			p.Match(NginxParserNEWLINE)
 		}
-
 	}
 	p.SetState(104)
 	p.GetErrorHandler().Sync(p)
@@ -1646,7 +1637,6 @@ func (p *NginxParser) Block() (localctx IBlockContext) {
 			p.SetState(106)
 			p.Match(NginxParserNEWLINE)
 		}
-
 	}
 	{
 		p.SetState(109)
@@ -1660,7 +1650,6 @@ func (p *NginxParser) Block() (localctx IBlockContext) {
 			p.SetState(110)
 			p.Match(NginxParserNEWLINE)
 		}
-
 	}
 	p.SetState(124)
 	p.GetErrorHandler().Sync(p)
@@ -1703,7 +1692,6 @@ func (p *NginxParser) Block() (localctx IBlockContext) {
 				p.SetState(119)
 				p.Match(NginxParserNEWLINE)
 			}
-
 		}
 
 		p.SetState(126)
@@ -1722,7 +1710,6 @@ func (p *NginxParser) Block() (localctx IBlockContext) {
 			p.SetState(128)
 			p.Match(NginxParserNEWLINE)
 		}
-
 	}
 
 	return localctx
@@ -1745,7 +1732,7 @@ type GenericBlockHeaderContext struct {
 }
 
 func NewEmptyGenericBlockHeaderContext() *GenericBlockHeaderContext {
-	var p = new(GenericBlockHeaderContext)
+	p := new(GenericBlockHeaderContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = NginxParserRULE_genericBlockHeader
 	return p
@@ -1754,7 +1741,7 @@ func NewEmptyGenericBlockHeaderContext() *GenericBlockHeaderContext {
 func (*GenericBlockHeaderContext) IsGenericBlockHeaderContext() {}
 
 func NewGenericBlockHeaderContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *GenericBlockHeaderContext {
-	var p = new(GenericBlockHeaderContext)
+	p := new(GenericBlockHeaderContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -1909,7 +1896,7 @@ type IfStatementContext struct {
 }
 
 func NewEmptyIfStatementContext() *IfStatementContext {
-	var p = new(IfStatementContext)
+	p := new(IfStatementContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = NginxParserRULE_ifStatement
 	return p
@@ -1918,7 +1905,7 @@ func NewEmptyIfStatementContext() *IfStatementContext {
 func (*IfStatementContext) IsIfStatementContext() {}
 
 func NewIfStatementContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *IfStatementContext {
-	var p = new(IfStatementContext)
+	p := new(IfStatementContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -2051,7 +2038,6 @@ func (p *NginxParser) IfStatement() (localctx IIfStatementContext) {
 			p.SetState(140)
 			p.Match(NginxParserNEWLINE)
 		}
-
 	}
 	{
 		p.SetState(143)
@@ -2066,7 +2052,6 @@ func (p *NginxParser) IfStatement() (localctx IIfStatementContext) {
 			p.SetState(144)
 			p.Match(NginxParserNEWLINE)
 		}
-
 	}
 	{
 		p.SetState(147)
@@ -2080,7 +2065,6 @@ func (p *NginxParser) IfStatement() (localctx IIfStatementContext) {
 			p.SetState(148)
 			p.Match(NginxParserNEWLINE)
 		}
-
 	}
 	p.SetState(157)
 	p.GetErrorHandler().Sync(p)
@@ -2099,7 +2083,6 @@ func (p *NginxParser) IfStatement() (localctx IIfStatementContext) {
 				p.SetState(152)
 				p.Match(NginxParserNEWLINE)
 			}
-
 		}
 
 		p.SetState(159)
@@ -2118,7 +2101,6 @@ func (p *NginxParser) IfStatement() (localctx IIfStatementContext) {
 			p.SetState(161)
 			p.Match(NginxParserNEWLINE)
 		}
-
 	}
 
 	return localctx
@@ -2141,7 +2123,7 @@ type IfBodyContext struct {
 }
 
 func NewEmptyIfBodyContext() *IfBodyContext {
-	var p = new(IfBodyContext)
+	p := new(IfBodyContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = NginxParserRULE_ifBody
 	return p
@@ -2150,7 +2132,7 @@ func NewEmptyIfBodyContext() *IfBodyContext {
 func (*IfBodyContext) IsIfBodyContext() {}
 
 func NewIfBodyContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *IfBodyContext {
-	var p = new(IfBodyContext)
+	p := new(IfBodyContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -2252,7 +2234,6 @@ func (p *NginxParser) IfBody() (localctx IIfBodyContext) {
 			p.SetState(165)
 			p.Match(NginxParserNEWLINE)
 		}
-
 	}
 	p.SetState(169)
 	p.GetErrorHandler().Sync(p)
@@ -2281,7 +2262,6 @@ func (p *NginxParser) IfBody() (localctx IIfBodyContext) {
 			p.SetState(173)
 			p.Match(NginxParserNEWLINE)
 		}
-
 	}
 	p.SetState(178)
 	p.GetErrorHandler().Sync(p)
@@ -2291,13 +2271,11 @@ func (p *NginxParser) IfBody() (localctx IIfBodyContext) {
 			p.SetState(176)
 			p.Match(NginxParserValue)
 		}
-
 	} else if p.GetInterpreter().AdaptivePredict(p.GetTokenStream(), 37, p.GetParserRuleContext()) == 2 {
 		{
 			p.SetState(177)
 			p.Regexp()
 		}
-
 	}
 	p.SetState(181)
 	p.GetErrorHandler().Sync(p)
@@ -2308,7 +2286,6 @@ func (p *NginxParser) IfBody() (localctx IIfBodyContext) {
 			p.SetState(180)
 			p.Match(NginxParserNEWLINE)
 		}
-
 	}
 	{
 		p.SetState(183)
@@ -2335,7 +2312,7 @@ type RegexpContext struct {
 }
 
 func NewEmptyRegexpContext() *RegexpContext {
-	var p = new(RegexpContext)
+	p := new(RegexpContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = NginxParserRULE_regexp
 	return p
@@ -2344,7 +2321,7 @@ func NewEmptyRegexpContext() *RegexpContext {
 func (*RegexpContext) IsRegexpContext() {}
 
 func NewRegexpContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *RegexpContext {
-	var p = new(RegexpContext)
+	p := new(RegexpContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -2524,7 +2501,7 @@ type LocationBlockHeaderContext struct {
 }
 
 func NewEmptyLocationBlockHeaderContext() *LocationBlockHeaderContext {
-	var p = new(LocationBlockHeaderContext)
+	p := new(LocationBlockHeaderContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = NginxParserRULE_locationBlockHeader
 	return p
@@ -2533,7 +2510,7 @@ func NewEmptyLocationBlockHeaderContext() *LocationBlockHeaderContext {
 func (*LocationBlockHeaderContext) IsLocationBlockHeaderContext() {}
 
 func NewLocationBlockHeaderContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *LocationBlockHeaderContext {
-	var p = new(LocationBlockHeaderContext)
+	p := new(LocationBlockHeaderContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -2623,7 +2600,6 @@ func (p *NginxParser) LocationBlockHeader() (localctx ILocationBlockHeaderContex
 			p.SetState(197)
 			p.Match(NginxParserValue)
 		}
-
 	}
 	p.SetState(202)
 	p.GetErrorHandler().Sync(p)
@@ -2662,7 +2638,7 @@ type RewriteStatementContext struct {
 }
 
 func NewEmptyRewriteStatementContext() *RewriteStatementContext {
-	var p = new(RewriteStatementContext)
+	p := new(RewriteStatementContext)
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(nil, -1)
 	p.RuleIndex = NginxParserRULE_rewriteStatement
 	return p
@@ -2671,7 +2647,7 @@ func NewEmptyRewriteStatementContext() *RewriteStatementContext {
 func (*RewriteStatementContext) IsRewriteStatementContext() {}
 
 func NewRewriteStatementContext(parser antlr.Parser, parent antlr.ParserRuleContext, invokingState int) *RewriteStatementContext {
-	var p = new(RewriteStatementContext)
+	p := new(RewriteStatementContext)
 
 	p.BaseParserRuleContext = antlr.NewBaseParserRuleContext(parent, invokingState)
 
@@ -2790,7 +2766,6 @@ func (p *NginxParser) RewriteStatement() (localctx IRewriteStatementContext) {
 				p.Consume()
 			}
 		}
-
 	}
 
 	return localctx

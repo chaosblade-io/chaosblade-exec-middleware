@@ -26,14 +26,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/chaosblade-io/chaosblade-spec-go/log"
-
 	"github.com/chaosblade-io/chaosblade-exec-os/version"
-
+	"github.com/chaosblade-io/chaosblade-spec-go/log"
 	"github.com/chaosblade-io/chaosblade-spec-go/spec"
-	"golang.org/x/crypto/ssh"
-
 	"github.com/howeyc/gopass"
+	"golang.org/x/crypto/ssh"
 )
 
 const (
@@ -194,8 +191,7 @@ func (e *SSHExecutor) Exec(uid string, ctx context.Context, expModel *spec.ExpMo
 		if bladeReleaseURL == "" {
 			bladeReleaseURL = fmt.Sprintf(BladeReleaseURL, version.BladeVersion, version.BladeVersion)
 		}
-		installCommand :=
-			fmt.Sprintf(`if  [ ! -f "%s" ];then
+		installCommand := fmt.Sprintf(`if  [ ! -f "%s" ];then
 														wget %s;
 														if [ $? -ne 0 ]; then exit 1; fi;
 														tar -zxf $(echo "%s" |awk -F '/' '{print $NF}') -C %s --strip-components 1;
