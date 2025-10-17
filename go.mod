@@ -4,8 +4,8 @@ go 1.25
 
 require (
 	github.com/antlr/antlr4/runtime/Go/antlr v0.0.0-20220816024939-bc8df83d7b9d
-	github.com/chaosblade-io/chaosblade-exec-os v1.7.6-0.20250923111913-7874c175bc46
-	github.com/chaosblade-io/chaosblade-spec-go v1.7.6-0.20250923110714-d934145b72cc
+	github.com/chaosblade-io/chaosblade-exec-os v1.8.0
+	github.com/chaosblade-io/chaosblade-spec-go v1.8.0
 	github.com/containerd/cgroups v1.0.2-0.20210605143700-23b51209bf7b
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/howeyc/gopass v0.0.0-20190910152052-7cb4b85ec19c
@@ -36,7 +36,7 @@ require (
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
 	github.com/tklauser/numcpus v0.6.1 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
-	go.uber.org/automaxprocs v1.3.0 // indirect
+	go.uber.org/automaxprocs v1.6.0 // indirect
 	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/term v0.1.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect

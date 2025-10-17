@@ -10,7 +10,7 @@ else
     GIT_TAG := $(shell git describe --tags --abbrev=0 2>/dev/null || echo "")
     ifeq ($(GIT_TAG),)
         # If no Git Tag exists, use default version
-        BLADE_VERSION := 1.7.4
+        BLADE_VERSION := 1.8.0
     else
         # Extract version number from Git Tag (remove v prefix)
         BLADE_VERSION := $(shell echo $(GIT_TAG) | sed 's/^v//')
