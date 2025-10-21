@@ -39,6 +39,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Run code style and import order verification
         run: make verify
+      - name: Check License Header
+        uses: korandoru/hawkeye@v6
       - name: Tests
         id: test
         run: |
